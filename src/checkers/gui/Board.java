@@ -1,4 +1,4 @@
-package checkers;
+package checkers.gui;
 
 public class Board {
 
