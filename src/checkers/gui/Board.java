@@ -22,6 +22,9 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
+import checkers.ai.Computer;
+import checkers.core.GameRepresentation;
+
 
 
 
@@ -38,24 +41,29 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener{
 	private ImageIcon kingRed;
 	//Initial slot from where the piece is moved
 	private JLabel initSlot;
+	private int xi,yi;
 	//Slots over which the piece hovers over
 	private JLabel intSlot;
+	private ImageIcon intermediate;
 	//Final slot where the piece is dropped
 	private JLabel endSlot;
+	
 	//Current X coordinate for the mouse cursor
 	private int cursorX;
 	//Current Y coordinate for the mouse cursor
 	private int cursorY;
 	//enable moving the pieces true=enabled, false=disabled
 	private boolean enableDrag;
+	private GameRepresentation game;//model of the game
+	private InfoPane info;
+	private Computer comp;
 	/**
 	 * Constructor for the board: draws the board and lays out the pieces
 	 */
-	public Board(){
-		//colors used for the checkers board
-		Color[] c=new Color[2];
-		c[0]=Color.WHITE;
-		c[1]=Color.BLUE;
+	public Board(GameRepresentation g, InfoPane inf){
+		game=g;
+		info=inf;
+		comp=new Computer(game);
 		//load images for pieces
 		black=new ImageIcon("black.jpg");
 		kingBlack=new ImageIcon("black_king.jpg");
@@ -70,7 +78,6 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener{
 		this.setLayout(new GridLayout(8,8));
 		slots=new JLabel[8][8];
 		for(int i=0;i<8;i++){
-			cl=i%2;
 			for(int j=0;j<8;j++){
 				slots[i][j]=new JLabel();
 				//add mouse listener 
@@ -80,30 +87,33 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener{
 				slots[i][j].setHorizontalAlignment(JLabel.CENTER);
 				slots[i][j].setOpaque(true);
 				slots[i][j].setBorder(BorderFactory.createRaisedBevelBorder());
-				slots[i][j].setBackground(c[cl]);
+				cl=game.getSlotState(i, j);
+				if(cl==GameRepresentation.EMPTY_WHITE)
+					slots[i][j].setBackground(Color.WHITE);
+				else 
+					slots[i][j].setBackground(Color.BLUE);
 				//add the label to the panel
 				this.add(slots[i][j]);
-				cl=switchColor(cl);
+				
 			}
 		}
 		//lay out the pieces on the checkers board
-		for(int i=0;i<2;i++)
+		for(int i=0;i<3;i++)
 			for(int j=0;j<8;j++){
-				if(slots[i][j].getBackground()==Color.BLUE)
+				cl=game.getSlotState(i, j);
+				if(cl!=GameRepresentation.EMPTY_WHITE)
 					slots[i][j].setIcon(black);
-				if(slots[i+6][j].getBackground()==Color.BLUE)
-					slots[i+6][j].setIcon(red);
-			
+				
+				
+				cl=game.getSlotState(i+5, j);
+				if(cl!=GameRepresentation.EMPTY_WHITE)
+					
+					slots[i+5][j].setIcon(red);
+				
 			}
 	}
 	
-	//switches the background color of the slots
-	private int switchColor(int c){
-		if(c==0)
-			return 1;
-		else 
-			return 0;
-	}
+	
 	
 
 	@Override
@@ -135,13 +145,17 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener{
 	public void mousePressed(MouseEvent e) {
 		//get the initial JLabel
 		initSlot=(JLabel)e.getComponent();
-		
-		enableDrag=true;
+		intermediate=(ImageIcon)initSlot.getIcon();
 		for(int i=0;i<8;i++)
 			for(int j=0;j<8;j++)
 				if(slots[i][j].equals(initSlot)){
-					slots[i][j].setIcon(null);
-					
+					xi=i;
+					yi=j;
+										
+					if(game.getTurn()==GameRepresentation.RED&&(game.getSlotState(i, j)==GameRepresentation.RED||game.getSlotState(i, j)==GameRepresentation.RED_KING)){
+						slots[i][j].setIcon(null);
+						enableDrag=true;
+					}
 				}
 		
 	}
@@ -155,12 +169,89 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener{
 		//drop the component
 		for(int i=0;i<8;i++)
 			for(int j=0;j<8;j++)
-				if(slots[i][j].equals(endSlot)){
-					slots[i][j].setIcon(black);
+				if(game.getTurn()==GameRepresentation.RED){
+					if(slots[i][j].equals(endSlot))
+						if(game.canMove(xi,yi,i,j)){
+							if(i==0)
+								slots[i][j].setIcon(kingRed);
+						
+							else
+								slots[i][j].setIcon(intermediate);
+						game.move(xi,yi,i,j);
+						info.updateInfo();
+						}
+						else{
+							int ii, ij;
+							ii=Math.max(xi, i)-1;
+							ij=Math.max(yi, j)-1;
+							if(game.canJump(xi,yi,ii,ij,i,j)){
+								if(i==0)
+									slots[i][j].setIcon(kingRed);
+								else
+									slots[i][j].setIcon(intermediate);
+							slots[ii][ij].setIcon(null);
+							game.move(xi,yi,i,j);
+							info.updateInfo();
+							
+							}
+							else 						
+								slots[xi][yi].setIcon(intermediate);
+						}
+				
+					repaint();		
+					}
+				else{
+					int[] aux;
+					aux=comp.getNextMove();
+						if(aux.length==4){
+							if(aux[2]==7)
+								slots[aux[2]][aux[3]].setIcon(kingBlack);
+						
+							else
+								slots[aux[2]][aux[3]].setIcon(black);
+						slots[aux[0]][aux[1]].setIcon(null);
+						game.move(aux[0],aux[1],aux[2],aux[3]);
+						info.updateInfo();
+						}
+						else{
+								if(aux[4]==0)
+									slots[aux[4]][aux[5]].setIcon(kingBlack);
+								else
+									slots[aux[4]][aux[5]].setIcon(intermediate);
+							slots[aux[0]][aux[1]].setIcon(null);
+							slots[aux[2]][aux[3]].setIcon(null);
+							game.move(aux[0],aux[1],aux[4],aux[5]);
+							info.updateInfo();
+							
+							}
+						repaint();	
+						}
 					
 				}
-		repaint();
-	}
+			
+		/**if(game.getTurn()==GameRepresentation.BLACK){
+			int[] aux;
+			aux=comp.getNextMove();
+			System.out.println();
+			for(int x=0;x<aux.length;x++)
+				System.out.print(aux[x]+" ");
+			if(aux.length==4){
+				slots[aux[0]][aux[1]].setIcon(null);
+				slots[aux[2]][aux[3]].setIcon(black);
+				game.move(aux[0], aux[1], aux[2], aux[3]);
+				info.updateInfo();
+			}
+			else{
+				slots[aux[0]][aux[1]].setIcon(null);
+				slots[aux[2]][aux[3]].setIcon(null);
+				slots[aux[4]][aux[5]].setIcon(black);
+				game.move(aux[0], aux[1], aux[4], aux[5]);
+				info.updateInfo();
+			}
+			repaint();
+		}**/
+			
+	
 
 	/**
 	 * Listens to the event in which the mouse is dragged over a component
@@ -193,22 +284,12 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener{
 		if(enableDrag){
 			Graphics2D g2=(Graphics2D)g;
 			g2.setColor(getBackground());
-			g2.setColor(Color.BLACK);
+			g2.setColor(Color.YELLOW);
 			g2.fillOval(cursorX-20, cursorY-20, 40, 40);
 		}
 	}
 	
-	public static void main(String[] args){
-		JFrame f=new JFrame("Testing");
-		Board b=new Board();
-		
-		f.getContentPane().add(b,BorderLayout.CENTER);
-		
-		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		f.pack();
-		f.setVisible(true);
-		
-	}
+	
 	
 }
 
