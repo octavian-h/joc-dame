@@ -65,10 +65,10 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener{
 		info=inf;
 		comp=new Computer(game);
 		//load images for pieces
-		black=new ImageIcon("black.jpg");
-		kingBlack=new ImageIcon("black_king.jpg");
-		red=new ImageIcon("red.jpg");
-		kingRed=new ImageIcon("red_king.jpg");
+		black=new ImageIcon("graphics/black.jpg");
+		kingBlack=new ImageIcon("graphics/black_king.jpg");
+		red=new ImageIcon("graphics/red.jpg");
+		kingRed=new ImageIcon("graphics/red_king.jpg");
 		//disable dragging
 		enableDrag=false;
 		int cl=0;//initializes the first color of the row
