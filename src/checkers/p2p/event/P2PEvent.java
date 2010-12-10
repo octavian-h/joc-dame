@@ -5,6 +5,7 @@ public class P2PEvent extends java.util.EventObject
 	public static final int PEER_FOUND = 1;
 	public static final int GROUP_FOUND = 2;
 	public static final int SEARCH_FINISHED = 0;
+	public static final int MESSAGE_RECEIVED = 3;
 	
 	private int tip;
 	
