@@ -21,7 +21,6 @@ import net.jxta.platform.NetworkManager;
 import net.jxta.protocol.PeerAdvertisement;
 import net.jxta.protocol.PeerGroupAdvertisement;
 
-import checkers.gui.Multiplayer;
 import checkers.p2p.event.*;
 
 /**
