@@ -35,4 +35,6 @@ public class LegalMove extends RecursiveAction{
 			return null;
 		else return legal;
 	}
+	
+	
 }

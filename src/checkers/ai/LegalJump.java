@@ -35,4 +35,6 @@ public class LegalJump extends RecursiveAction{
 			return null;
 		else return legal;
 	}
+	
+	
 }
