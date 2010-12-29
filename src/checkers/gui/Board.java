@@ -24,6 +24,8 @@ import javax.swing.SwingUtilities;
 
 import checkers.ai.Computer;
 import checkers.core.GameRepresentation;
+import checkers.core.SinglePlayer;
+import checkers.core.Multiplayer;
 
 
 
@@ -47,7 +49,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener{
 	private ImageIcon intermediate;
 	//Final slot where the piece is dropped
 	private JLabel endSlot;
-	
+	private int[] userInput;
 	//Current X coordinate for the mouse cursor
 	private int cursorX;
 	//Current Y coordinate for the mouse cursor
@@ -57,13 +59,21 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener{
 	private GameRepresentation game;//model of the game
 	private InfoPane info;
 	private Computer comp;
+	private SinglePlayer user;
+	private Multiplayer multiuser;
+	private int mode;//1 single player 2 multiplayer
 	/**
 	 * Constructor for the board: draws the board and lays out the pieces
 	 */
-	public Board(GameRepresentation g, InfoPane inf){
+	public Board(GameRepresentation g, InfoPane inf, SinglePlayer u, int m){
 		game=g;
+		mode=m;
 		info=inf;
-		comp=new Computer(game);
+		if(mode==2)
+		 multiuser =(Multiplayer)u;
+		else 
+			user=u;
+	
 		//load images for pieces
 		black=new ImageIcon("graphics/black.jpg");
 		kingBlack=new ImageIcon("graphics/black_king.jpg");
@@ -111,6 +121,8 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener{
 					slots[i+5][j].setIcon(red);
 				
 			}
+		
+		
 	}
 	
 	
@@ -118,8 +130,20 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener{
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
+		if(e.getButton()==MouseEvent.BUTTON3&&mode ==1&&game.getTurn()==GameRepresentation.BLACK){
+			
+			int[] move;
+			comp=new Computer(game);
+			
+			move=comp.getNextMove();
+			game.move(move[0],move[1],move[2],move[3]);
+			
+			
+			this.updateBoard();
+			info.updateInfo();
+		}
+		if(game.checkForWinner()!=100)
+			this.disableBoard();
 	}
 
 	/**
@@ -146,13 +170,22 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener{
 		//get the initial JLabel
 		initSlot=(JLabel)e.getComponent();
 		intermediate=(ImageIcon)initSlot.getIcon();
+		userInput=new int[4];
 		for(int i=0;i<8;i++)
 			for(int j=0;j<8;j++)
 				if(slots[i][j].equals(initSlot)){
-					xi=i;
-					yi=j;
+					userInput[0]=i;
+					userInput[1]=j;
 										
-					if(game.getTurn()==GameRepresentation.RED&&(game.getSlotState(i, j)==GameRepresentation.RED||game.getSlotState(i, j)==GameRepresentation.RED_KING)){
+					if(mode==1&&game.getTurn()==GameRepresentation.RED&&(game.getSlotState(i, j)==GameRepresentation.RED||game.getSlotState(i, j)==GameRepresentation.RED_KING)){
+						slots[i][j].setIcon(null);
+						enableDrag=true;
+					}
+					if(mode==2&&game.getTurn()==GameRepresentation.BLACK&&(game.getSlotState(i, j)==GameRepresentation.BLACK||game.getSlotState(i, j)==GameRepresentation.BLACK_KING)&&multiuser.getPiece()==GameRepresentation.BLACK){
+						slots[i][j].setIcon(null);
+						enableDrag=true;
+					}
+					if(mode==2&&game.getTurn()==GameRepresentation.RED&&(game.getSlotState(i, j)==GameRepresentation.RED||game.getSlotState(i, j)==GameRepresentation.RED_KING)&&multiuser.getPiece()==GameRepresentation.RED){
 						slots[i][j].setIcon(null);
 						enableDrag=true;
 					}
@@ -166,92 +199,56 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener{
 	 */
 	public void mouseReleased(MouseEvent e) {
 		enableDrag=false;//disable drag
+		
 		//drop the component
+		if(mode==1&&game.getTurn()==GameRepresentation.RED){
 		for(int i=0;i<8;i++)
 			for(int j=0;j<8;j++)
-				if(game.getTurn()==GameRepresentation.RED){
-					if(slots[i][j].equals(endSlot))
-						if(game.canMove(xi,yi,i,j)){
-							if(i==0)
-								slots[i][j].setIcon(kingRed);
-						
-							else
-								slots[i][j].setIcon(intermediate);
-						game.move(xi,yi,i,j);
-						info.updateInfo();
-						}
-						else{
-							int ii, ij;
-							ii=Math.max(xi, i)-1;
-							ij=Math.max(yi, j)-1;
-							if(game.canJump(xi,yi,ii,ij,i,j)){
-								if(i==0)
-									slots[i][j].setIcon(kingRed);
-								else
-									slots[i][j].setIcon(intermediate);
-							slots[ii][ij].setIcon(null);
-							game.move(xi,yi,i,j);
-							info.updateInfo();
-							
-							}
-							else 						
-								slots[xi][yi].setIcon(intermediate);
-						}
 				
-					repaint();		
+					if(slots[i][j].equals(endSlot)){
+						userInput[2]=i;
+						userInput[3]=j;
 					}
-				else{
-					int[] aux;
-					aux=comp.getNextMove();
-						if(aux.length==4){
-							if(aux[2]==7)
-								slots[aux[2]][aux[3]].setIcon(kingBlack);
-						
-							else
-								slots[aux[2]][aux[3]].setIcon(black);
-						slots[aux[0]][aux[1]].setIcon(null);
-						game.move(aux[0],aux[1],aux[2],aux[3]);
-						info.updateInfo();
-						}
-						else{
-								if(aux[4]==0)
-									slots[aux[4]][aux[5]].setIcon(kingBlack);
-								else
-									slots[aux[4]][aux[5]].setIcon(intermediate);
-							slots[aux[0]][aux[1]].setIcon(null);
-							slots[aux[2]][aux[3]].setIcon(null);
-							game.move(aux[0],aux[1],aux[4],aux[5]);
-							info.updateInfo();
-							
-							}
-						repaint();	
-						}
+				user.getUserInput(userInput);
+				user.makeMove();
+				this.updateBoard();
+				info.updateInfo();
+				
+		}
+		if(mode==2&&game.getTurn()==GameRepresentation.BLACK&&multiuser.getPiece()==GameRepresentation.BLACK){
+			for(int i=0;i<8;i++)
+				for(int j=0;j<8;j++)
 					
-				}
-			
-		/**if(game.getTurn()==GameRepresentation.BLACK){
-			int[] aux;
-			aux=comp.getNextMove();
-			System.out.println();
-			for(int x=0;x<aux.length;x++)
-				System.out.print(aux[x]+" ");
-			if(aux.length==4){
-				slots[aux[0]][aux[1]].setIcon(null);
-				slots[aux[2]][aux[3]].setIcon(black);
-				game.move(aux[0], aux[1], aux[2], aux[3]);
-				info.updateInfo();
+						if(slots[i][j].equals(endSlot)){
+							userInput[2]=i;
+							userInput[3]=j;
+						}
+					multiuser.getUserInput(userInput);
+					multiuser.makeMove();
+					this.updateBoard();
+					info.updateInfo();
+					
 			}
-			else{
-				slots[aux[0]][aux[1]].setIcon(null);
-				slots[aux[2]][aux[3]].setIcon(null);
-				slots[aux[4]][aux[5]].setIcon(black);
-				game.move(aux[0], aux[1], aux[4], aux[5]);
-				info.updateInfo();
+		if(mode==2&&game.getTurn()==GameRepresentation.RED&&multiuser.getPiece()==GameRepresentation.RED){
+			for(int i=0;i<8;i++)
+				for(int j=0;j<8;j++)
+					
+						if(slots[i][j].equals(endSlot)){
+							userInput[2]=i;
+							userInput[3]=j;
+						}
+					multiuser.getUserInput(userInput);
+					multiuser.makeMove();
+					this.updateBoard();
+					info.updateInfo();
+					
 			}
-			repaint();
-		}**/
-			
+		repaint();	
+		
+		if(game.checkForWinner()!=100)
+			this.disableBoard();
 	
+	}
 
 	/**
 	 * Listens to the event in which the mouse is dragged over a component
@@ -290,7 +287,29 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener{
 	}
 	
 	
+	public void updateBoard(){
+		for(int i=0;i<8;i++)
+			for(int j=0;j<8;j++){
+				if(game.getSlotState(i, j)==GameRepresentation.EMPTY_WHITE||game.getSlotState(i, j)==GameRepresentation.EMPTY_BLUE)
+					slots[i][j].setIcon(null);
+				if(game.getSlotState(i, j)==GameRepresentation.RED)
+					slots[i][j].setIcon(red);
+				if(game.getSlotState(i, j)==GameRepresentation.BLACK)
+					slots[i][j].setIcon(black);
+				if(game.getSlotState(i, j)==GameRepresentation.RED_KING)
+					slots[i][j].setIcon(kingRed);
+				if(game.getSlotState(i, j)==GameRepresentation.BLACK_KING)
+					slots[i][j].setIcon(kingBlack);
+				slots[i][j].validate();
+			}
+		
+	}
 	
+	private void disableBoard(){
+		for(int i=0;i<8;i++)
+			for(int j=0;j<8;j++)
+				slots[i][j].setEnabled(false);
+	}
 }
 
 

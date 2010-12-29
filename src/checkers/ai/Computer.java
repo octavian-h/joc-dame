@@ -24,9 +24,11 @@ public class Computer extends RecursiveAction{
 		invokeAll(legalJ,legalM);
 	}
 	public int[] getNextMove(){
+		
 		Random generator = new Random();
 		ArrayList<ComputerMove> moves;
 		ArrayList<ComputerMove> jumps;
+	
 		compute=new ForkJoinPool();
 		compute.invoke(this);
 		

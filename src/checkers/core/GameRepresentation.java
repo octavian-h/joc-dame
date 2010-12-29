@@ -4,7 +4,7 @@ import java.awt.Color;
 
 public class GameRepresentation {
 	
-	public int[][] matrix;
+	private int[][] matrix;
 	public static final int RED=1;
 	public  static final int BLACK=-1;
 	public static final int BLACK_KING=-3;
@@ -43,11 +43,8 @@ public class GameRepresentation {
 					matrix[i+5][j]=RED;
 			
 			}
-		for(int i=0;i<8;i++){
-			for(int j=0;j<8;j++)
-				System.out.print(matrix[i][j]+" ");
-			System.out.println();
-		}
+	
+	
 	}
 	
 	//switches the background color of the slots
@@ -220,6 +217,25 @@ public class GameRepresentation {
 		}
 		return false;
 		
+	}
+	
+	public int checkForWinner(){
+		boolean foundRed=false;
+		boolean foundBlack=false;
+		for(int i=0;i<8;i++)
+			for(int j=0;j<8;j++){
+				if(matrix[i][j]==BLACK||matrix[i][j]==BLACK_KING)
+					foundBlack=true;
+				if(matrix[i][j]==RED||matrix[i][j]==RED_KING)
+					foundRed=true;
+			}
+		
+		if(foundRed==true&&foundBlack==false)
+			return RED;
+		else if(foundRed==false&&foundBlack==true)
+			return BLACK;
+		else
+			return 100;
 	}
 
 }

@@ -7,12 +7,15 @@ import java.awt.GridLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import checkers.core.GameRepresentation;
+
 public class InfoPane extends JPanel{
 	
 	private JLabel blackPlayer;
 	private JLabel redPlayer;
-	
+	private GameRepresentation game;
 	public InfoPane(){
+		
 		this.setPreferredSize(new Dimension(500,50));
 		this.setLayout(new GridLayout(1,2));
 		blackPlayer=new JLabel("Player Black");
@@ -32,7 +35,7 @@ public class InfoPane extends JPanel{
 	}
 	
 	public void updateInfo(){
-		if(blackPlayer.getBackground()==Color.ORANGE){
+		if(game.getTurn()==GameRepresentation.RED){
 			blackPlayer.setBackground(null);
 			redPlayer.setBackground(Color.ORANGE);
 		}
@@ -40,5 +43,17 @@ public class InfoPane extends JPanel{
 			blackPlayer.setBackground(Color.ORANGE);
 			redPlayer.setBackground(null);
 		}
+		if(game.checkForWinner()==GameRepresentation.RED)
+			redPlayer.setText("Player Red \n WINNER");
+			
+		if(game.checkForWinner()==GameRepresentation.BLACK)
+			blackPlayer.setText("Player Black \n WINNER");
+		
+		
+	}
+	
+	public void setGame(GameRepresentation g){
+		game=g;
+		updateInfo();
 	}
 }
