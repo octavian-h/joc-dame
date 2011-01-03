@@ -13,8 +13,10 @@ import net.jxta.discovery.DiscoveryEvent;
 import net.jxta.discovery.DiscoveryListener;
 import net.jxta.discovery.DiscoveryService;
 import net.jxta.document.Advertisement;
-import net.jxta.document.StructuredDocument;
+import net.jxta.exception.PeerGroupException;
+//import net.jxta.exception.PeerGroupException;
 import net.jxta.id.IDFactory;
+import net.jxta.membership.Authenticator;
 import net.jxta.membership.MembershipService;
 import net.jxta.peergroup.PeerGroup;
 import net.jxta.peergroup.PeerGroupID;
@@ -33,23 +35,60 @@ public class Groups implements DiscoveryListener, ActionListener
 {
 	private final static int nrMaxGrupe = 1;
 	private final static int nrMaxCautari = 5;
-	private final static int intarziere = 5 * 1000;
+	private final static int intervalCautari = 5 * 1000;
 
 	private EventListenerList listenerList;
-	private PeerGroup defaultPeerGroup;
+
 	private DiscoveryService discovery;
-	private HashMap<PeerGroupID, PeerGroupAdvertisement> groups;
+
+	private PeerGroup defaultPeerGroup;
+	private HashMap<String, String> groups;
 	private javax.swing.Timer ceas;
 	private int nrCautari;
 	private String numeGrup;
-	
+	private PeerGroupAdvertisement firstPeerGroupAdv;
+
+	private boolean isRunning;
+
+	/**
+	 * Constructorul pentru clasa Groups.
+	 * 
+	 * @param netPeerGroup
+	 */
 	public Groups(PeerGroup netPeerGroup)
 	{
 		defaultPeerGroup = netPeerGroup;
+
 		listenerList = new EventListenerList();
 		discovery = defaultPeerGroup.getDiscoveryService();
-		groups = new HashMap<PeerGroupID, PeerGroupAdvertisement>();
-		ceas = new javax.swing.Timer(intarziere, this);
+		groups = new HashMap<String, String>();
+		ceas = new javax.swing.Timer(intervalCautari, this);
+	}
+
+	/**
+	 * Porneste serviciile.
+	 */
+	public void start()
+	{
+		if (!isRunning)
+		{
+			isRunning = true;
+			discovery.addDiscoveryListener(this);
+		}
+	}
+
+	/**
+	 * Opreste serviciile.
+	 */
+	public void stop()
+	{
+		if (isRunning)
+		{
+			isRunning = false;
+			ceas.stop();
+			groups.clear();
+			discovery.removeDiscoveryListener(this);
+		}
 	}
 
 	/**
@@ -63,11 +102,11 @@ public class Groups implements DiscoveryListener, ActionListener
 		if (ceas.isRunning()) stopSearch();
 
 		numeGrup = groupName;
-		System.out.println("InfoG: Cautare locala.");
+		System.out.println("Info (Groups): Cautare locala.");
 		searchLocal("Name", numeGrup);
 		if (groups.size() < nrMaxGrupe)
 		{
-			System.out.println("InfoG: Cautare externa.");
+			System.out.println("Info (Groups): Cautare externa.");
 			nrCautari = 0;
 			ceas.start();
 		}
@@ -79,8 +118,15 @@ public class Groups implements DiscoveryListener, ActionListener
 	public void stopSearch()
 	{
 		ceas.stop();
-		System.out.println("InfoG: S-a oprit cautarea.");
-		fireSearchFinished();
+		System.out.println("Info (Groups): S-a oprit cautarea.");
+		Thread t=new Thread()
+		{
+			public void run()
+			{
+				fireSearchFinished(getGroups());
+			}
+		};
+		t.start();		
 	}
 
 	/**
@@ -92,19 +138,34 @@ public class Groups implements DiscoveryListener, ActionListener
 	{
 		if (advs != null)
 		{
+			boolean primul = true;
 			int aux = groups.size();
 			while (groups.size() < nrMaxGrupe && advs.hasMoreElements())
 			{
 				Advertisement item = advs.nextElement();
 				if (item instanceof PeerGroupAdvertisement)
 				{
-					groups.put(((PeerGroupAdvertisement) item).getPeerGroupID(),
-							(PeerGroupAdvertisement) item);
-					System.out.println("InfoG: A fost gasit:"
-							+ ((PeerGroupAdvertisement) item).getName());
+					PeerGroupAdvertisement pga = (PeerGroupAdvertisement) item;
+					groups.put(pga.getPeerGroupID().toString(), pga.getName());
+					System.out.println("Info (Groups): A fost gasit:" + pga.getName());
+					if (primul)
+					{
+						firstPeerGroupAdv = pga;
+						primul = false;
+					}
 				}
 			}
-			if (groups.size() != aux) fireContentChanged();
+			if (groups.size() != aux)
+			{
+				Thread t=new Thread()
+				{
+					public void run()
+					{
+						fireContentChanged(getGroups());
+					}
+				};
+				t.start();
+			}
 		}
 	}
 
@@ -116,7 +177,7 @@ public class Groups implements DiscoveryListener, ActionListener
 	 */
 	private void searchRemote(String attr, String val)
 	{
-		discovery.getRemoteAdvertisements(null, DiscoveryService.GROUP, attr, val, nrMaxGrupe, this);
+		discovery.getRemoteAdvertisements(null, DiscoveryService.GROUP, attr, val, nrMaxGrupe);
 	}
 
 	/**
@@ -135,7 +196,7 @@ public class Groups implements DiscoveryListener, ActionListener
 		}
 		catch (IOException e)
 		{
-			System.out.println("EroareG: nu s-au putut citi cache-ul local.");
+			System.out.println("Eroare (Groups): nu s-au putut citi cache-ul local.");
 		}
 	}
 
@@ -153,78 +214,117 @@ public class Groups implements DiscoveryListener, ActionListener
 				Advertisement anAdv = (Advertisement) eachAdv.nextElement();
 				discovery.flushAdvertisement(anAdv);
 			}
+			groups.clear();
 		}
 		catch (IOException e)
 		{
-			System.out.println("EroareG: nu s-au putut sterge group advertisements.");
+			System.out.println("Eroare (Groups): nu s-au putut sterge group advertisements.");
 		}
 	}
 
-	public HashMap<PeerGroupID, PeerGroupAdvertisement> getGroups()
+	/**
+	 * @return primul grup gasit
+	 */
+	public PeerGroup getFirstGroup()
 	{
-		return new HashMap<PeerGroupID, PeerGroupAdvertisement>(groups);
+		PeerGroup primul = null;
+		try
+		{
+			primul = defaultPeerGroup.newGroup(firstPeerGroupAdv);
+		}
+		catch (PeerGroupException e)
+		{
+			System.out.println("Eroare (Groups): nu s-au putut crea grupul din PeerGroupAdvertisement.");
+		}
+		
+		return primul;
 	}
 
+	/**
+	 * @return lista de grupuri
+	 */
+	public HashMap<String, String> getGroups()
+	{
+		return new HashMap<String, String>(groups);
+	}
+
+	/**
+	 * Creeaza un grup cu name si description.
+	 * 
+	 * @param name
+	 * @param description
+	 * @return grupul creat
+	 * @throws Exception
+	 */
 	public PeerGroup createGroup(String name, String description) throws Exception
 	{
 		return createGroup(IDFactory.newPeerGroupID(), name, description);
 	}
 
+	/**
+	 * Creeaza un grup cu groupID, name si description.
+	 * 
+	 * @param groupID
+	 * @param name
+	 * @param description
+	 * @return grupul creat
+	 */
 	public PeerGroup createGroup(PeerGroupID groupID, String name, String description)
-			throws Exception
 	{
-		// Obtain a preformed ModuleImplAdvertisement to
-		// use when creating the new peer group.
-		ModuleImplAdvertisement implAdv = defaultPeerGroup
-				.getAllPurposePeerGroupImplAdvertisement();
-
-		// Create the new group using the Peer Group ID,
-		// advertisement, name, and description.
-		PeerGroup newGroup = defaultPeerGroup.newGroup(groupID, implAdv, name, description);
-
-		// Need to publish the group remotely only because
-		// newGroup() handles publishing to the local peer.
-		PeerGroupAdvertisement groupAdv = newGroup.getPeerGroupAdvertisement();
-		DiscoveryService discovery = defaultPeerGroup.getDiscoveryService();
-		discovery.remotePublish(groupAdv, DiscoveryService.GROUP);
-
-		return newGroup;
-	}
-
-	public void joinGroup(PeerGroup group)
-	{
-		StructuredDocument myCredentials = null;
+		PeerGroup newGroup = null;
 		try
 		{
-			AuthenticationCredential myAuthenticationCredential = new AuthenticationCredential(
-					group, null, myCredentials);
-			MembershipService myMembershipService = group.getMembershipService();
-			net.jxta.membership.Authenticator myAuthenticator = myMembershipService
-					.apply(myAuthenticationCredential);
-			if (!myAuthenticator.isReadyForJoin())
-			{
-				System.out.println("Authenticator is not complete - nu s-a putut face joined\n");
-				return;
-			}
-			myMembershipService.join(myAuthenticator);
-			System.out.println("Group has been joined\n");
+			ModuleImplAdvertisement implAdv = defaultPeerGroup
+					.getAllPurposePeerGroupImplAdvertisement();
+			newGroup = defaultPeerGroup.newGroup(groupID, implAdv, name, description);
+			PeerGroupAdvertisement groupAdv = newGroup.getPeerGroupAdvertisement();
+
+			DiscoveryService discovery = defaultPeerGroup.getDiscoveryService();
+			discovery.remotePublish(groupAdv, DiscoveryService.GROUP);
 		}
 		catch (Exception e)
 		{
-			System.out.println("Authentication failed - group not joined\n");
-			e.printStackTrace();
-			// System.exit(-1);
+			System.out.println("Eroare (Groups): Nu s-a putut crea noul grup.");
 		}
-
+		
+		return newGroup;
 	}
 
 	/**
-	 * Se ocupa cu evenimentul generat de gasirea unui peer.
+	 * Asociaza partenerul local la group.
+	 * 
+	 * @param group
+	 * @return rezultatul operatiei
+	 */
+	public boolean joinGroup(PeerGroup group)
+	{
+		AuthenticationCredential cred = new AuthenticationCredential(group, null, null);
+		MembershipService membershipService = group.getMembershipService();
+		Authenticator authenticator;
+		try
+		{
+			authenticator = membershipService.apply(cred);
+			if (authenticator.isReadyForJoin())
+			{
+				membershipService.join(authenticator);
+				System.out.println("Info (Groups): S-a facut join la grupul " + group);
+				return true;
+			}
+		}
+		catch (Exception e)
+		{
+			System.out.println("Eroare (Groups): Nu s-a putut crea noul authenticator-ul.");
+		}		
+
+		return false;
+	}
+
+	/**
+	 * Se ocupa cu evenimentul generat de gasirea unui grup.
 	 */
 	public void discoveryEvent(DiscoveryEvent event)
 	{
 		DiscoveryResponseMsg rez = event.getResponse();
-		System.out.println("InfoG: DiscoveryEvent de la group");
 		addGroups(rez.getAdvertisements());
 	}
 
@@ -237,7 +337,7 @@ public class Groups implements DiscoveryListener, ActionListener
 		if (nrCautari > nrMaxCautari || groups.size() == nrMaxGrupe) stopSearch();
 		else
 		{
-			System.out.println("G Cautarea nr " + nrCautari);
+			System.out.println("Info (Groups): Cautarea nr " + nrCautari);
 			searchRemote("Name", numeGrup);
 		}
 	}
@@ -260,27 +360,31 @@ public class Groups implements DiscoveryListener, ActionListener
 
 	/**
 	 * Notifica schimbarea continutului listei groups.
+	 * 
+	 * @param groupsList
 	 */
-	private synchronized void fireContentChanged()
+	private synchronized void fireContentChanged(HashMap<String, String> groupsList)
 	{
 		P2PListener[] listeners = listenerList.getListeners(P2PListener.class);
 
 		for (int i = listeners.length - 1; i >= 0; --i)
 		{
-			listeners[i].stateChanged(new P2PEvent(this, P2PEvent.GROUP_FOUND));
+			listeners[i].stateChanged(new P2PEvent(this, P2PEvent.GROUP_FOUND, groupsList));
 		}
 	}
 
 	/**
 	 * Notifica terminarea cautarii.
+	 * 
+	 * @param groupsList
 	 */
-	private synchronized void fireSearchFinished()
+	private synchronized void fireSearchFinished(HashMap<String, String> groupsList)
 	{
 		P2PListener[] listeners = listenerList.getListeners(P2PListener.class);
 
 		for (int i = listeners.length - 1; i >= 0; --i)
 		{
-			listeners[i].stateChanged(new P2PEvent(this, P2PEvent.SEARCH_FINISHED));
+			listeners[i].stateChanged(new P2PEvent(this, P2PEvent.GROUP_SEARCH_FINISHED, groupsList));
 		}
 	}
 }

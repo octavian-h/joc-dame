@@ -3,6 +3,7 @@ package checkers.p2p;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -13,13 +14,9 @@ import javax.swing.event.EventListenerList;
 
 import net.jxta.exception.PeerGroupException;
 import net.jxta.id.IDFactory;
-import net.jxta.peer.PeerID;
 import net.jxta.peergroup.PeerGroup;
 import net.jxta.peergroup.PeerGroupID;
 import net.jxta.platform.NetworkManager;
-import net.jxta.protocol.PeerAdvertisement;
-import net.jxta.protocol.PeerGroupAdvertisement;
-
 import checkers.p2p.event.*;
 
 /**
@@ -36,92 +33,103 @@ public class Connection implements P2PListener
 	private PeerGroup checkersGroup, netPeerGroup;
 	private Groups groups;
 	private Peers peers;
+
 	private boolean isRunning;
 
-	public static void main(String[] args) 
-	{
-		//pentru testare
-		
-		try
-		{
-			Connection c =new Connection("Alabala");
-			c.open();
-			Thread.sleep(10000);
-			c.searchPeers();
-			c.close();
-		}
-		catch (Exception e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	
-	public Connection(String numePeer) throws IOException
+	/**
+	 * Constructorul pentru clasa Connection
+	 * 
+	 * @param peerName
+	 *            numele partenerului local
+	 * @throws IOException
+	 */
+	public Connection(String peerName) throws IOException
 	{
 		Logger.getLogger("net.jxta").setLevel(Level.SEVERE);
 
 		listenerList = new EventListenerList();
-		manager = new NetworkManager(NetworkManager.ConfigMode.EDGE, numePeer, new File(new File(
-				".cache"), "CheckersGame " + numePeer).toURI());
+		manager = new NetworkManager(NetworkManager.ConfigMode.EDGE, peerName, new File(new File(
+				".cache"), "CheckersGame " + peerName).toURI());
+
 		isRunning = false;
 	}
 
-	public void open() throws PeerGroupException, IOException
+	/**
+	 * Porneste conexiunea.
+	 * @throws IOException 
+	 * @throws PeerGroupException 
+	 */
+	public void start() throws PeerGroupException, IOException
 	{
 		if (!isRunning)
 		{
-			System.out.println("S-a deschis conexiunea");
-			isRunning = true;
+			System.out.println("Info (Connection): S-a deschis conexiunea.");
 			manager.startNetwork();
+			isRunning = true;
 			netPeerGroup = manager.getNetPeerGroup();
 			groups = new Groups(netPeerGroup);
+			groups.start();
 			groups.addP2PListener(this);
 			// groups.flush();
 			groups.search("CheckersGroup");
 		}
 	}
 
-	public synchronized void close()
+	/**
+	 * Opreste conexiunea.
+	 */
+	public void stop()
 	{
 		if (isRunning)
 		{
-			peers.stopSearch();
-			groups.stopSearch();
-			isRunning = false;			
-			P2PListener[] listeners = listenerList.getListeners(P2PListener.class);
-			for (int i = listeners.length - 1; i >= 0; --i)
+			System.out.println("Info (Connection): S-a inchis conexiunea.");
+			if (peers != null)
 			{
-				peers.removeP2PListener(listeners[i]);
+				peers.removeP2PListener(this);
+				peers.stop();
+				peers = null;
 			}
-			groups.removeP2PListener(this);			
-			peers = null;
+			groups.removeP2PListener(this);
+			groups.stop();
 			groups = null;
 			checkersGroup = null;
 			manager.stopNetwork();
-			System.out.println("S-a inchis conexiunea");
+			isRunning = false;
 		}
 	}
 
+	/**
+	 * Cauta toti partenerii din grupul CheckersGroup.
+	 */
 	public void searchPeers()
 	{
-		peers.flush();
-		peers.search();
-	}
-
-	public void searchPeers(String nameFilter)
-	{
-		// peers.flush();
-		if (isValid(nameFilter)) peers.search("*" + nameFilter + "*");
-		else
+		if (peers != null)
 		{
-			// TODO
+			peers.flush();
+			peers.search();
 		}
 	}
 
+	/**
+	 * Cauta partenerii care au nume asemanator cu nameFilter.
+	 * 
+	 * @param nameFilter
+	 */
+	public void searchPeers(String nameFilter)
+	{
+		if (peers != null)
+		{
+			peers.flush();
+			if (isValid(nameFilter)) peers.search("*" + nameFilter + "*");
+		}
+	}
+
+	/**
+	 * Opreste cautarea.
+	 */
 	public void stopSearching()
 	{
-		peers.stopSearch();
+		if (peers != null) peers.stopSearch();
 	}
 
 	private boolean isValid(String s)
@@ -131,71 +139,172 @@ public class Connection implements P2PListener
 		return m.matches();
 	}
 
-	public HashMap<PeerID, PeerAdvertisement> getPeers()
+	/**
+	 * Trimite un mesaj prin output pipe.
+	 * 
+	 * @param message
+	 *            mesajul de trimis
+	 */
+	public void sendMessage(String message)
 	{
-		return peers.getPeers();
+		if (peers != null) peers.sendMessage(message);
 	}
 
 	/**
-	 * Adauga un <code>P2PListener</code> la clasa Peers.
+	 * @return lista de parteneri (id, nume_partener)
 	 */
-	public synchronized void addP2PListener(P2PListener listener)
+	public HashMap<String, String> getPeers()
+	{
+		if (peers != null) return peers.getPeers();
+		else return null;
+	}
+
+	/**
+	 * Adauga un <code>P2PListener</code> la clasa Connection.
+	 */
+	public void addP2PListener(P2PListener listener)
 	{
 		listenerList.add(P2PListener.class, listener);
-		peers.addP2PListener(listener);
 	}
 
 	/**
-	 * Sterge <code>P2PListener</code> de la clasa Peers.
+	 * Sterge <code>P2PListener</code> de la clasa Connection.
 	 */
-	public synchronized void removeP2PListener(P2PListener listener)
+	public void removeP2PListener(P2PListener listener)
 	{
 		listenerList.remove(P2PListener.class, listener);
-		peers.removeP2PListener(listener);
 	}
 
-	@Override
+	/**
+	 * Se ocupa cu evenimentul generate de P2P de gasirea unui grup.
+	 */
 	public void stateChanged(P2PEvent event)
 	{
 		switch (event.getTip())
 		{
 			case P2PEvent.GROUP_FOUND:
 			{
-				try
+				System.out.println("Info (Connection): A fost gasit grupul.");
+
+				checkersGroup = groups.getFirstGroup();
+				if (!groups.joinGroup(checkersGroup))
 				{
-					HashMap<PeerGroupID, PeerGroupAdvertisement> pg = groups.getGroups();
-					checkersGroup = netPeerGroup.newGroup(pg.entrySet().iterator().next()
-							.getValue());
-					groups.joinGroup(checkersGroup);
-					peers = new Peers(netPeerGroup);//checkersGroup);
-					break;
+					System.out.println("Info (Connection): Nu s-a putut face join!");
 				}
-				catch (PeerGroupException e1)
-				{
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
+				peers = new Peers(netPeerGroup); // checkersGroup
+				peers.addP2PListener(this);
+				peers.start();
+				break;
 			}
-			case P2PEvent.SEARCH_FINISHED:
+			case P2PEvent.GROUP_SEARCH_FINISHED:
 			{
 				if (checkersGroup == null)
 				{
+					System.out.println("Info (Connection): Creaza grup nou.");
+					PeerGroupID groupID = null;
 					try
 					{
-						PeerGroupID groupID = (PeerGroupID) IDFactory.fromURI(new URI(gid));
-						checkersGroup = groups.createGroup(groupID, "CheckersGroup",
-								"Group for checkers game.");
-						groups.joinGroup(checkersGroup);
-						peers = new Peers(netPeerGroup);//checkersGroup
+						groupID = (PeerGroupID) IDFactory.fromURI(new URI(gid));
 					}
-					catch (Exception e)
+					catch (URISyntaxException e)
 					{
-						System.out.println("Nu s-a putut crea grupul!");
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						System.out.println("Eroare (Peers): peer id incorect!");
 					}
+					checkersGroup = groups.createGroup(groupID, "CheckersGroup",
+							"Group for checkers game.");
+					if (!groups.joinGroup(checkersGroup))
+					{
+						System.out.println("Info (Connection): Nu s-a putut face join!");
+					}
+					groups.joinGroup(checkersGroup);
+					peers = new Peers(netPeerGroup); // checkersGroup
+					peers.addP2PListener(this);
+					peers.start();
+
 				}
+				break;
 			}
+			case P2PEvent.MESSAGE_RECEIVED:
+			{
+				fireMessageReceived(event.getSenderID(), event.getMessage());
+				break;
+			}
+			case P2PEvent.PEER_FOUND:
+			{
+				fireContentChanged(event.getList());
+				break;
+			}
+			case P2PEvent.PEER_SEARCH_FINISHED:
+			{
+				fireSearchFinished(event.getList());
+				break;
+			}
+			case P2PEvent.PEER_READY:
+			{
+				fireConnectionReady();
+				// break;
+			}
+		}
+	}
+
+	/**
+	 * Notifica asocierea la grupul checkersGroup.
+	 */
+	private void fireConnectionReady()
+	{
+		P2PListener[] listeners = listenerList.getListeners(P2PListener.class);
+
+		for (int i = listeners.length - 1; i >= 0; --i)
+		{
+			listeners[i].stateChanged(new P2PEvent(this, P2PEvent.CONNECTION_READY));
+		}
+	}
+
+	/**
+	 * Notifica schimbarea continutului listei de parteneri.
+	 * 
+	 * @param peersList
+	 */
+	private void fireContentChanged(HashMap<String, String> peersList)
+	{
+		P2PListener[] listeners = listenerList.getListeners(P2PListener.class);
+
+		for (int i = listeners.length - 1; i >= 0; --i)
+		{
+			listeners[i].stateChanged(new P2PEvent(this, P2PEvent.PEER_FOUND, peersList));
+		}
+	}
+
+	/**
+	 * Notifica terminarea cautarii.
+	 * 
+	 * @param peersList
+	 */
+	private void fireSearchFinished(HashMap<String, String> peersList)
+	{
+		P2PListener[] listeners = listenerList.getListeners(P2PListener.class);
+
+		for (int i = listeners.length - 1; i >= 0; --i)
+		{
+			listeners[i].stateChanged(new P2PEvent(this, P2PEvent.PEER_SEARCH_FINISHED, peersList));
+		}
+	}
+
+	/**
+	 * Notifica primirea unui mesaj.
+	 * 
+	 * @param from
+	 *            id-ul partenerului care a trimis
+	 * @param data
+	 *            mesajul trimis
+	 */
+	private void fireMessageReceived(String from, String data)
+	{
+		P2PListener[] listeners = listenerList.getListeners(P2PListener.class);
+
+		for (int i = listeners.length - 1; i >= 0; --i)
+		{
+			listeners[i].stateChanged(new P2PEvent(this, P2PEvent.MESSAGE_RECEIVED, from, data));
 		}
 	}
 }
