@@ -1,0 +1,15 @@
+	Checkers Rules: 
+  The starting position is with each player having twelve pieces, on the twelve dark  squares closest to his edge of the board. Notice that in checker diagrams, the pieces are  usually placed on the light colored squares, for readability. On a real board they   are on the dark squares.  
+
+  Moving: A piece which is not a king can move one square, diagonally, forward. A king  can move one square diagonally, forward or backward. A piece (piece or king) can only  move to a vacant square. A move can also consist of one or more jumps.  
+
+  Jumping: You capture an opponent's piece (piece or king) by jumping over it,  diagonally, to the adjacent vacant square beyond it. The three squares must be lined up (diagonally adjacent): your jumping piece (piece or king), opponent's piece (piece or  king), empty square. A king can jump diagonally, forward or backward. A piece which is  not a king, can only jump diagonally forward. You can make a multiple jump, with one  piece only, by jumping to empty square to empty square. In a multiple jump, the jumping  piece or king can change directions, jumping first in one direction and then in  another direction. You can only jump one piece with any given jump, but you can jump  several pieces with a move of several jumps. You remove the jumped pieces from the  board. You cannot jump your own piece. You cannot jump the same piece twice, in the  same move. If you can jump, you must. And, a multiple jump must be completed; you  cannot stop part way through a multiple jump. If you have a choice of jumps, you can  choose among them, regardless of whether some of them are multiple, or not. A piece,  whether it is a king or not, can jump a king.  
+  Kinging: When a piece reaches the last row (the King Row), it becomes a King. A second  checker is placed on top of that one, by the opponent. A piece that has just kinged,  cannot continue jumping pieces, until the next move. 
+
+    Single Player: 
+  In this mode you play as RED and computere plays as BLACK .
+  When it is your turn you can move your pieces according to the rules by drag and drop.  	
+  When you are done moving just click anywhere on the board in order for the computer to     move.  
+
+    Multiplayer: 
+  In this mode you choose an oponent from the peer list and invite him to play. If he  agrees to play then the game will start, and each of the player moves the pieces  according to the rules using drag and drop. 
