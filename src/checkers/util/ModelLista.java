@@ -15,17 +15,26 @@ public class ModelLista extends AbstractListModel<Entry<String, String>>
 {
 	private ArrayList<Entry<String, String>> date;
 	
+	/**
+	 * Constructorul pentru clasa ModelLista
+	 * 
+	 * @param lista
+	 */
 	public ModelLista(HashMap<String, String> lista)
 	{
-		if(lista == null) date = new ArrayList<Entry<String, String>>();
-		else setDate(lista);
+		setDate(lista);
 	}
 	
 	private void setDate(HashMap<String, String> lista)
 	{
-		for(java.util.Map.Entry<String, String> item: lista.entrySet())
+		if(lista == null) date = new ArrayList<Entry<String, String>>();
+		else
 		{
-			date.add(new Entry<String, String>(item.getKey(), item.getValue()));
+			date.clear();
+			for(java.util.Map.Entry<String, String> item: lista.entrySet())
+			{
+				date.add(new Entry<String, String>(item.getKey(), item.getValue()));
+			}
 		}
 	}
 	
@@ -42,7 +51,7 @@ public class ModelLista extends AbstractListModel<Entry<String, String>>
 	}
 	
 	/**
-	 * Goleste listei.
+	 * Goleste lista.
 	 */
 	public void clear()
 	{
