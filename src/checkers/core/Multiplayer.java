@@ -1,11 +1,18 @@
 package checkers.core;
 
-public class Multiplayer extends SinglePlayer {
+public class Multiplayer {
 	
 	private int piece;
+	private GameRepresentation game;//model of the game
+	private int[] userMove;
+	
 	public Multiplayer(GameRepresentation g){
-		super(g);
+		game=g;
 		piece=GameRepresentation.BLACK;
+	}
+	
+	public void getUserInput(int[] uM){
+		userMove=uM;
 	}
 	
 	public boolean makeMove(){
@@ -19,5 +26,9 @@ public class Multiplayer extends SinglePlayer {
 	
 	public int getPiece(){
 		return piece;
+	}
+	
+	public void setPiece(int p){
+		piece=p;
 	}
 }
