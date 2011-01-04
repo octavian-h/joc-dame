@@ -4,12 +4,10 @@ import checkers.ai.Computer;
 
 public class SinglePlayer {
 	
-	protected GameRepresentation game;//model of the game
-	protected int[] userMove;
+	private GameRepresentation game;//model of the game
+	private int[] userMove;
 	
-	public SinglePlayer(){
-		userMove=new int[4];
-	}
+	
 	public SinglePlayer(GameRepresentation g){
 		
 		game=g;

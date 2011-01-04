@@ -65,12 +65,12 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener{
 	/**
 	 * Constructor for the board: draws the board and lays out the pieces
 	 */
-	public Board(GameRepresentation g, InfoPane inf, SinglePlayer u, int m){
+	public Board(GameRepresentation g, InfoPane inf, SinglePlayer u,Multiplayer mu, int m){
 		game=g;
 		mode=m;
 		info=inf;
 		if(mode==2)
-		 multiuser =(Multiplayer)u;
+		 multiuser =mu;
 		else 
 			user=u;
 	
