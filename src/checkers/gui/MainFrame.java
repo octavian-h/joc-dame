@@ -163,6 +163,9 @@ public class MainFrame extends JFrame implements ActionListener{
 			this.validate();
 		}
 	}
+	public void addPlayerNames(String player1, String player2){
+		info.updatePlayerNames(player1, player2);
+	}
 	
 	public static void main(String[] args){
 		MainFrame f=new MainFrame();

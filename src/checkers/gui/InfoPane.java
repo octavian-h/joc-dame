@@ -44,10 +44,10 @@ public class InfoPane extends JPanel{
 			redPlayer.setBackground(null);
 		}
 		if(game.checkForWinner()==GameRepresentation.RED)
-			redPlayer.setText("Player Red \n WINNER");
+			redPlayer.setText(redPlayer.getText()+" Winner");
 			
 		if(game.checkForWinner()==GameRepresentation.BLACK)
-			blackPlayer.setText("Player Black \n WINNER");
+			blackPlayer.setText(blackPlayer.getText()+" Winner");
 		
 		
 	}
@@ -55,5 +55,10 @@ public class InfoPane extends JPanel{
 	public void setGame(GameRepresentation g){
 		game=g;
 		updateInfo();
+	}
+	
+	public void updatePlayerNames(String player1, String player2){
+		blackPlayer.setText(player1);
+		redPlayer.setText(player2);
 	}
 }
