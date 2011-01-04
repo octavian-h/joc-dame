@@ -1,11 +1,22 @@
 package checkers.core;
 
-public class Multiplayer extends SinglePlayer {
+import checkers.gui.Board;
+
+public class Multiplayer {
 	
 	private int piece;
-	public Multiplayer(GameRepresentation g){
-		super(g);
+	private GameRepresentation game;//model of the game
+	private int[] userMove;
+	private  Board brd;
+	
+	public Multiplayer(GameRepresentation g,Board b){
+		game=g;
+		brd=b;
 		piece=GameRepresentation.BLACK;
+	}
+	
+	public void getUserInput(int[] uM){
+		userMove=uM;
 	}
 	
 	public boolean makeMove(){
@@ -19,5 +30,9 @@ public class Multiplayer extends SinglePlayer {
 	
 	public int getPiece(){
 		return piece;
+	}
+	
+	public void setPiece(int p){
+		piece=p;
 	}
 }
