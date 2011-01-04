@@ -34,7 +34,7 @@ public class Connection implements P2PListener
 	private Groups groups;
 	private Peers peers;
 
-	private boolean isRunning;
+	private boolean isRunning, ready;
 
 	/**
 	 * Constructorul pentru clasa Connection
@@ -52,6 +52,7 @@ public class Connection implements P2PListener
 				".cache"), "CheckersGame " + peerName).toURI());
 
 		isRunning = false;
+		ready = false;
 	}
 
 	/**
@@ -66,6 +67,7 @@ public class Connection implements P2PListener
 			System.out.println("Info (Connection): S-a deschis conexiunea.");
 			manager.startNetwork();
 			isRunning = true;
+			ready = false;
 			netPeerGroup = manager.getNetPeerGroup();
 			groups = new Groups(netPeerGroup);
 			groups.start();
@@ -75,6 +77,15 @@ public class Connection implements P2PListener
 		}
 	}
 
+	public boolean isStarted()
+	{
+		return isRunning;
+	}
+	
+	public boolean isReady()
+	{
+		return ready;
+	}
 	/**
 	 * Opreste conexiunea.
 	 */
@@ -95,6 +106,7 @@ public class Connection implements P2PListener
 			checkersGroup = null;
 			manager.stopNetwork();
 			isRunning = false;
+			ready = false;
 		}
 	}
 
@@ -226,7 +238,7 @@ public class Connection implements P2PListener
 			}
 			case P2PEvent.MESSAGE_RECEIVED:
 			{
-				fireMessageReceived(event.getSenderID(), event.getMessage());
+				fireMessageReceived(event.getSenderID(), event.getSenderName(), event.getMessage());
 				break;
 			}
 			case P2PEvent.PEER_FOUND:
@@ -241,7 +253,8 @@ public class Connection implements P2PListener
 			}
 			case P2PEvent.PEER_READY:
 			{
-				fireConnectionReady();
+				ready = true;
+				//fireConnectionReady();
 				// break;
 			}
 		}
@@ -293,18 +306,20 @@ public class Connection implements P2PListener
 	/**
 	 * Notifica primirea unui mesaj.
 	 * 
-	 * @param from
+	 * @param senderID
 	 *            id-ul partenerului care a trimis
+	 * @param senderName
+	 *            numele partenerului care a trimis
 	 * @param data
 	 *            mesajul trimis
 	 */
-	private void fireMessageReceived(String from, String data)
+	private synchronized void fireMessageReceived(String senderID, String senderName, String data)
 	{
 		P2PListener[] listeners = listenerList.getListeners(P2PListener.class);
 
 		for (int i = listeners.length - 1; i >= 0; --i)
 		{
-			listeners[i].stateChanged(new P2PEvent(this, P2PEvent.MESSAGE_RECEIVED, from, data));
+			listeners[i].stateChanged(new P2PEvent(this, P2PEvent.MESSAGE_RECEIVED, senderID, senderName, data));
 		}
 	}
 }

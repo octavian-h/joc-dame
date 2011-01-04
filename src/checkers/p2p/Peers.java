@@ -51,6 +51,7 @@ public class Peers implements DiscoveryListener, ActionListener, PipeMsgListener
 	private String numePeer;
 
 	private PeerID peerID;
+	private String peerName;
 	private InputPipe inputPipe;
 	private OutputPipe outputPipe;
 
@@ -72,7 +73,8 @@ public class Peers implements DiscoveryListener, ActionListener, PipeMsgListener
 		peers = new HashMap<String, String>();
 		ceas = new javax.swing.Timer(intervalCautari, this);
 		peerID = defaultPeerGroup.getPeerID();
-
+		peerName = defaultPeerGroup.getPeerName();
+		
 		isRunning = false;
 	}
 
@@ -320,9 +322,11 @@ public class Peers implements DiscoveryListener, ActionListener, PipeMsgListener
 		if (outputPipe != null)
 		{
 			Message msg = new Message();
-			StringMessageElement from = new StringMessageElement("From", peerID.toString(), null);
+			StringMessageElement senderID = new StringMessageElement("SenderID", peerID.toString(), null);
+			StringMessageElement senderName = new StringMessageElement("SenderName", peerName, null);			
 			StringMessageElement data = new StringMessageElement("Data", message, null);
-			msg.addMessageElement("CheckerMessage", from);
+			msg.addMessageElement("CheckerMessage", senderID);
+			msg.addMessageElement("CheckerMessage", senderName);
 			msg.addMessageElement("CheckerMessage", data);
 			try
 			{
@@ -345,22 +349,26 @@ public class Peers implements DiscoveryListener, ActionListener, PipeMsgListener
 		System.out.println("Info (Peers): PipeMsgEvent");
 		if (msg != null)
 		{
-			final MessageElement from = msg.getMessageElement("CheckerMessage", "From");
-			if (from != null && !from.toString().equals(peerID.toString()))
+			final MessageElement senderID = msg.getMessageElement("CheckerMessage", "SenderID");
+			if (senderID != null && !senderID.toString().equals(peerID.toString()))
 			{
-				final MessageElement data = msg.getMessageElement("CheckerMessage", "Data");
-				if (data != null)
+				final MessageElement senderName = msg.getMessageElement("CheckerMessage", "SenderName");
+				if(senderName != null)
 				{
-					System.out.println("Info (Peers): s-a primit un mesaj de la " + from.toString()
-							+ " ce contine [" + data.toString() + "]");
-					Thread t=new Thread()
+					final MessageElement data = msg.getMessageElement("CheckerMessage", "Data");
+					if (data != null)
 					{
-						public void run()
+						System.out.println("Info (Peers): s-a primit un mesaj de la " + senderName
+								+ " ce contine [" + data.toString() + "]");
+						Thread t=new Thread()
 						{
-							fireMessageReceived(from.toString(), data.toString());
-						}
-					};
-					t.start();					
+							public void run()
+							{
+								fireMessageReceived(senderID.toString(), senderName.toString(), data.toString());
+							}
+						};
+						t.start();					
+					}
 				}
 			}
 		}
@@ -446,18 +454,20 @@ public class Peers implements DiscoveryListener, ActionListener, PipeMsgListener
 	/**
 	 * Notifica primirea unui mesaj.
 	 * 
-	 * @param from
+	 * @param senderID
 	 *            id-ul partenerului care a trimis
+	 * @param senderName
+	 *            numele partenerului care a trimis
 	 * @param data
 	 *            mesajul trimis
 	 */
-	private synchronized void fireMessageReceived(String from, String data)
+	private synchronized void fireMessageReceived(String senderID, String senderName, String data)
 	{
 		P2PListener[] listeners = listenerList.getListeners(P2PListener.class);
 
 		for (int i = listeners.length - 1; i >= 0; --i)
 		{
-			listeners[i].stateChanged(new P2PEvent(this, P2PEvent.MESSAGE_RECEIVED, from, data));
+			listeners[i].stateChanged(new P2PEvent(this, P2PEvent.MESSAGE_RECEIVED, senderID, senderName, data));
 		}
 	}
 }

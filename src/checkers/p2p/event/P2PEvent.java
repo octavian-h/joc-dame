@@ -9,6 +9,8 @@ import java.util.HashMap;
  */
 public class P2PEvent extends java.util.EventObject
 {
+	private static final long serialVersionUID = 1L;
+	
 	public static final int PEER_FOUND = 1;
 	public static final int GROUP_FOUND = 2;
 	public static final int PEER_SEARCH_FINISHED = 3;
@@ -19,30 +21,31 @@ public class P2PEvent extends java.util.EventObject
 	
 	private int tip;
 	private HashMap<String, String> list;
-	private String senderID;
+	private String senderID, senderName;
 	private String message;
 	
 	public P2PEvent(Object source, int tip)
 	{
-		this(source, tip, null, "", "");
+		this(source, tip, null, "", "", "");
 	}
 	
 	public P2PEvent(Object source, int tip, HashMap<String, String> list)
 	{
-		this(source, tip, list, "", "");
+		this(source, tip, list, "", "", "");
 	}
 	
-	public P2PEvent(Object source, int tip, String senderID, String message)
+	public P2PEvent(Object source, int tip, String senderID, String senderName, String message)
 	{
-		this(source, tip, null, senderID, message);
+		this(source, tip, null, senderID, senderName, message);
 	}
 	
-	private P2PEvent(Object source, int tip, HashMap<String, String> list, String senderID, String message)
+	private P2PEvent(Object source, int tip, HashMap<String, String> list, String senderID, String senderName, String message)
 	{
 		super(source);
 		this.setTip(tip);
 		this.setList(list);
 		this.setSenderID(senderID);
+		this.setSenderName(senderName);
 		this.setMessage(message);
 	}
 	
@@ -84,5 +87,15 @@ public class P2PEvent extends java.util.EventObject
 	public int getTip()
 	{
 		return tip;
+	}
+
+	private void setSenderName(String senderName)
+	{
+		this.senderName = senderName;
+	}
+
+	public String getSenderName()
+	{
+		return senderName;
 	}
 }
