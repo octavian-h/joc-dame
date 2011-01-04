@@ -21,8 +21,7 @@ import checkers.util.ModelLista;
  * @author Hasna Octavian-Lucian
  */
 
-public class PeerFrame extends JFrame implements ActionListener,
-P2PListener
+public class PeerFrame extends JFrame implements ActionListener, P2PListener
 {
 	private Connection connection;
 	private JButton bCauta, bInvita, bIesire;
@@ -30,33 +29,34 @@ P2PListener
 	private ModelLista mLista;
 	private String invitatID;
 	private MainFrame parinte;
-	
+
 	public PeerFrame(MainFrame parinte, Connection connection)
 	{
 		super("Checkers - Invite");
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setResizable(false);
-		
+
 		this.parinte = parinte;
 		connection.addP2PListener(this);
 		this.connection = connection;
-		if(!connection.isStarted()) try
+		if (!connection.isStarted())
 		{
-			connection.start();
+			try
+			{
+				connection.start();
+			}
+			catch (Exception e)
+			{
+				JOptionPane.showMessageDialog(this, "No connection.", "Error",
+						JOptionPane.ERROR_MESSAGE);
+				this.dispose();
+			}
 		}
-		catch (Exception e)
-		{
-			JOptionPane.showMessageDialog(this, "No connection.", "Error",
-					JOptionPane.ERROR_MESSAGE);	
-			this.dispose();
-		}		
 		mLista = new ModelLista(null);
 		invitatID = ""; // nu am invitat pe nimeni
-		
-		//
-		
+
 		// adauga continut
-		setContentPane(getContinut());		
+		setContentPane(getContinut());
 		pack();
 
 		// centreaza fereastra
@@ -64,9 +64,9 @@ P2PListener
 		setLocation(size.width / 2 - getWidth() / 2, size.height / 2 - getHeight() / 2);
 		setVisible(true);
 	}
-	
+
 	/**
-	 * Construieste continutul ferestrei "Checkers - Invite".
+	 * Construieste continutul ferestrei Invite.
 	 * 
 	 * @return continut (JPanel)
 	 */
@@ -74,13 +74,13 @@ P2PListener
 	{
 		JPanel jp = new JPanel();
 		jp.setLayout(new BorderLayout());
-		
+
 		jp.add(getZonaCautare(), BorderLayout.NORTH);
 		jp.add(getZonaLista(), BorderLayout.CENTER);
 		jp.add(getZonaButoane(), BorderLayout.SOUTH);
 		return jp;
 	}
-	
+
 	private JPanel getZonaCautare()
 	{
 		JPanel jp = new JPanel();
@@ -92,24 +92,24 @@ P2PListener
 		jp.add(bCauta);
 		return jp;
 	}
-	
+
 	private JPanel getZonaLista()
 	{
 		JPanel jp = new JPanel();
-		jp.setBorder(new EmptyBorder(0, 5, 5, 5));		
+		jp.setBorder(new EmptyBorder(0, 5, 5, 5));
 		jp.setLayout(new GridLayout(1, 1));
-		jp.setPreferredSize(new Dimension(100, 200));
-		
+		jp.setPreferredSize(new Dimension(200, 250));
+
 		lista = new JList<Entry<String, String>>(mLista);
 		lista.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		lista.setSelectedIndex(0);
 		lista.setVisibleRowCount(5);
-		
+
 		JScrollPane jsp = new JScrollPane(lista);
 		jp.add(jsp);
 		return jp;
 	}
-	
+
 	private JPanel getZonaButoane()
 	{
 		JPanel jp = new JPanel();
@@ -135,55 +135,70 @@ P2PListener
 		{
 			if (sursa == bCauta)
 			{
-				if(bCauta.getText().equals("Search peers"))
+				if (bCauta.getText().equals("Search peers"))
 				{
-					connection.searchPeers();
-					bCauta.setText("Stop searching");
+					if (!connection.isReady())
+					{
+						JOptionPane.showMessageDialog(this, "P2P Connection not ready. Retry.", "Error",
+								JOptionPane.ERROR_MESSAGE);
+					}
+					else
+					{	
+						connection.searchPeers();
+						bCauta.setText("Stop searching");
+						bInvita.setEnabled(false);
+					}
 				}
 				else
 				{
 					connection.stopSearching();
 					bCauta.setText("Search peers");
+					bInvita.setEnabled(true);
 				}
 			}
-			else if(sursa == bInvita)
+			else if (sursa == bInvita)
 			{
-				if(!connection.isReady())
+				if (!connection.isReady())
 				{
-					JOptionPane.showMessageDialog(this, "The connection is not ready.", "Error",
-							JOptionPane.ERROR_MESSAGE);					
+					JOptionPane.showMessageDialog(this, "P2P Connection not ready. Retry.", "Error",
+							JOptionPane.ERROR_MESSAGE);
 				}
 				else
-				{
+				{					
 					Entry<String, String> item = lista.getSelectedValue();
-					if(item != null)
+					if (item != null)
 					{
 						invitatID = lista.getSelectedValue().getKey();
-						connection.sendMessage("i ask");
+						String aux = lista.getSelectedValue().getValue();
+						if(!aux.endsWith(" - invited")) aux += " - invited";
+						mLista.setElementAt(lista.getSelectedIndex(), new Entry<String, String>(invitatID, aux));
+						connection.sendMessage(invitatID, "i ask");
 					}
 					else
 					{
 						JOptionPane.showMessageDialog(this, "No peer selected.", "Error",
-								JOptionPane.ERROR_MESSAGE);	
+								JOptionPane.ERROR_MESSAGE);
 					}
 				}
 			}
-			else if(sursa == bIesire)
+			else if (sursa == bIesire)
 			{
+				connection.stopSearching();
 				connection.removeP2PListener(this);
 				this.dispose();
 			}
 		}
-		
+
 	}
-	
+
 	private void incepeJocul(String playerID, String playerName, int culoare)
 	{
+		connection.stopSearching();
 		connection.removeP2PListener(this);
 		parinte.startMultiplayer(playerID, playerName, culoare);
 		this.dispose();
 	}
-	
+
 	@Override
 	public void stateChanged(P2PEvent event)
 	{
@@ -198,32 +213,39 @@ P2PListener
 			{
 				mLista.schimbaLista(event.getList());
 				bCauta.setText("Search peers");
+				bInvita.setEnabled(true);
 				break;
 			}
 			case P2PEvent.MESSAGE_RECEIVED:
 			{
 				String s = event.getMessage();
-				if(s.equals("i ask"))
+				if (s.equals("i ask"))
 				{
-					//ne-a trimis cineva o invitatie 
-					String message = "Do you accept the invitation from "+event.getSenderName()+"?";
-				    String title = "Accept invitation?";
-				    int reply = JOptionPane.showConfirmDialog(this, message, title, JOptionPane.YES_NO_OPTION);
-				    if (reply == JOptionPane.YES_OPTION)
-				    {
-				    	incepeJocul(event.getSenderID(), event.getSenderName(), GameRepresentation.RED);
-				    }
-				}
-				else if(s.equals("i ok"))
-				{
-					//ne-a raspuns cineva la invitatie
-					if(invitatID.equals(event.getSenderID()))
+					// ne-a trimis cineva o invitatie
+					String message = "Do you accept the invitation from " + event.getSenderName()
+							+ "?";
+					String title = "Accept invitation?";
+					int reply = JOptionPane.showConfirmDialog(this, message, title,
+							JOptionPane.YES_NO_OPTION);
+					if (reply == JOptionPane.YES_OPTION)
 					{
-						incepeJocul(event.getSenderID(), event.getSenderName(), GameRepresentation.BLACK);
+						connection.sendMessage(event.getSenderID(), "i ok");
+						incepeJocul(event.getSenderID(), event.getSenderName(),
+								GameRepresentation.RED);
+					}
+				}
+				else if (s.equals("i ok"))
+				{
+					System.out.println("Am primit un accept de la " + event.getSenderName());
+					// ne-a raspuns cineva la invitatie
+					if (invitatID.equals(event.getSenderID()))
+					{
+						incepeJocul(event.getSenderID(), event.getSenderName(),
+								GameRepresentation.BLACK);
 					}
 				}
 				break;
 			}
-		}		
+		}
 	}
 }

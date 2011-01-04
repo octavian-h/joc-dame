@@ -57,8 +57,9 @@ public class Connection implements P2PListener
 
 	/**
 	 * Porneste conexiunea.
-	 * @throws IOException 
-	 * @throws PeerGroupException 
+	 * 
+	 * @throws IOException
+	 * @throws PeerGroupException
 	 */
 	public void start() throws PeerGroupException, IOException
 	{
@@ -72,7 +73,7 @@ public class Connection implements P2PListener
 			groups = new Groups(netPeerGroup);
 			groups.start();
 			groups.addP2PListener(this);
-			// groups.flush();
+			groups.flush();
 			groups.search("CheckersGroup");
 		}
 	}
@@ -81,11 +82,12 @@ public class Connection implements P2PListener
 	{
 		return isRunning;
 	}
-	
+
 	public boolean isReady()
 	{
 		return ready;
 	}
+
 	/**
 	 * Opreste conexiunea.
 	 */
@@ -154,12 +156,14 @@ public class Connection implements P2PListener
 	/**
 	 * Trimite un mesaj prin output pipe.
 	 * 
+	 * @param receiverID
+	 *            id-ul partenerului la care se trimite
 	 * @param message
 	 *            mesajul de trimis
 	 */
-	public void sendMessage(String message)
+	public void sendMessage(String receiverID, String message)
 	{
-		if (peers != null) peers.sendMessage(message);
+		if (peers != null) peers.sendMessage(receiverID, message);
 	}
 
 	/**
@@ -254,7 +258,7 @@ public class Connection implements P2PListener
 			case P2PEvent.PEER_READY:
 			{
 				ready = true;
-				//fireConnectionReady();
+				// fireConnectionReady();
 				// break;
 			}
 		}
@@ -319,7 +323,8 @@ public class Connection implements P2PListener
 
 		for (int i = listeners.length - 1; i >= 0; --i)
 		{
-			listeners[i].stateChanged(new P2PEvent(this, P2PEvent.MESSAGE_RECEIVED, senderID, senderName, data));
+			listeners[i].stateChanged(new P2PEvent(this, P2PEvent.MESSAGE_RECEIVED, senderID,
+					senderName, data));
 		}
 	}
 }
