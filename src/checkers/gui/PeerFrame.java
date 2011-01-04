@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
+import checkers.core.GameRepresentation;
 import checkers.p2p.Connection;
 import checkers.p2p.event.P2PEvent;
 import checkers.p2p.event.P2PListener;
@@ -28,13 +29,15 @@ P2PListener
 	private JList<Entry<String, String>> lista;
 	private ModelLista mLista;
 	private String invitatID;
+	private MainFrame parinte;
 	
-	public PeerFrame(Connection connection)
+	public PeerFrame(MainFrame parinte, Connection connection)
 	{
 		super("Checkers - Invite");
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		setResizable(false);
 		
+		this.parinte = parinte;
 		connection.addP2PListener(this);
 		this.connection = connection;
 		if(!connection.isStarted()) try
@@ -50,7 +53,7 @@ P2PListener
 		mLista = new ModelLista(null);
 		invitatID = ""; // nu am invitat pe nimeni
 		
-		//String s = (String) JOptionPane.showInputDialog(this, "Numele tau:", "Checkers", JOptionPane.INFORMATION_MESSAGE);
+		//
 		
 		// adauga continut
 		setContentPane(getContinut());		
@@ -135,7 +138,6 @@ P2PListener
 				if(bCauta.getText().equals("Search peers"))
 				{
 					connection.searchPeers();
-					mLista.clear();
 					bCauta.setText("Stop searching");
 				}
 				else
@@ -168,15 +170,18 @@ P2PListener
 			}
 			else if(sursa == bIesire)
 			{
+				connection.removeP2PListener(this);
 				this.dispose();
 			}
 		}
 		
 	}
 	
-	private void incepeJocul(String playerID, String playerName)
+	private void incepeJocul(String playerID, String playerName, int culoare)
 	{
-		//aici trebuie scris
+		connection.removeP2PListener(this);
+		parinte.startMultiplayer(playerID, playerName, culoare);
+		this.dispose();
 	}
 	
 	@Override
@@ -206,7 +211,7 @@ P2PListener
 				    int reply = JOptionPane.showConfirmDialog(this, message, title, JOptionPane.YES_NO_OPTION);
 				    if (reply == JOptionPane.YES_OPTION)
 				    {
-				    	incepeJocul(event.getSenderID(), event.getSenderName());
+				    	incepeJocul(event.getSenderID(), event.getSenderName(), GameRepresentation.RED);
 				    }
 				}
 				else if(s.equals("i ok"))
@@ -214,7 +219,7 @@ P2PListener
 					//ne-a raspuns cineva la invitatie
 					if(invitatID.equals(event.getSenderID()))
 					{
-						incepeJocul(event.getSenderID(), event.getSenderName());
+						incepeJocul(event.getSenderID(), event.getSenderName(), GameRepresentation.BLACK);
 					}
 				}
 				break;

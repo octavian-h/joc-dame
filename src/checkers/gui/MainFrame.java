@@ -7,12 +7,14 @@ import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -21,6 +23,7 @@ import javax.swing.JTextPane;
 import checkers.core.GameRepresentation;
 import checkers.core.Multiplayer;
 import checkers.core.SinglePlayer;
+import checkers.p2p.Connection;
 
 public class MainFrame extends JFrame implements ActionListener{
 	private Board checkersBoard;
@@ -36,6 +39,7 @@ public class MainFrame extends JFrame implements ActionListener{
 	private JMenu helpMenu;
 	private JMenuItem instr;
 	private JMenuItem about;
+	private Connection connection;
 	
 	public MainFrame(){
 		menuBar=new JMenuBar();
@@ -59,8 +63,7 @@ public class MainFrame extends JFrame implements ActionListener{
 		menuBar.add(fileMenu);
 		menuBar.add(helpMenu);
 		this.setJMenuBar(menuBar);
-		info=new InfoPane();
-		
+		info=new InfoPane();		
 		
 		this.getContentPane().add(info,BorderLayout.NORTH);
 		
@@ -142,28 +145,44 @@ public class MainFrame extends JFrame implements ActionListener{
 					ab.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 					ab.setVisible(true);
 		}
-		if(e.getSource()==multiple){
-			game=new GameRepresentation();
-			
-			
-			if(checkersBoard==null)
-				checkersBoard=new Board(game,info, null,multiuser,2);
-			else{
-				this.remove(info);
-				this.remove(checkersBoard);
-				checkersBoard=new Board(game,info, null,multiuser,2);
-				info=new InfoPane();
+		if(e.getSource()==multiple)
+		{
+			String peerName = (String) JOptionPane.showInputDialog(this, "Numele tau:", "Checkers", JOptionPane.INFORMATION_MESSAGE);
+			if(connection == null) 
+			{
+				try
+				{
+					connection = new Connection(peerName);
+				}
+				catch (IOException e1)
+				{
+					JOptionPane.showMessageDialog(this, "The network is down.", "Error",
+							JOptionPane.ERROR_MESSAGE);
+				}
 			}
-			multiuser=new Multiplayer(game,checkersBoard, GameRepresentation.BLACK);
-			info.setGame(game);
-			checkersBoard.updateBoard();
-			this.getContentPane().add(info,BorderLayout.NORTH);
-			this.getContentPane().add(checkersBoard,BorderLayout.CENTER);
-			this.pack();
-			this.validate();
+			PeerFrame pf = new PeerFrame(this, connection);
+			
 		}
 	}
-	
+	public void startMultiplayer(String playerID, String playerName, int culoare)
+	{
+		game=new GameRepresentation();		
+		if(checkersBoard==null)
+			checkersBoard=new Board(game,info, null,multiuser,2);
+		else{
+			this.remove(info);
+			this.remove(checkersBoard);
+			checkersBoard=new Board(game,info, null,multiuser,2);
+			info=new InfoPane();
+		}
+		multiuser=new Multiplayer(game,checkersBoard, culoare);
+		info.setGame(game);
+		checkersBoard.updateBoard();
+		this.getContentPane().add(info,BorderLayout.NORTH);
+		this.getContentPane().add(checkersBoard,BorderLayout.CENTER);
+		this.pack();
+		this.validate();
+	}
 	public static void main(String[] args){
 		MainFrame f=new MainFrame();
 	}
