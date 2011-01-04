@@ -1,13 +1,17 @@
 package checkers.core;
 
+import checkers.gui.Board;
+
 public class Multiplayer {
 	
 	private int piece;
 	private GameRepresentation game;//model of the game
 	private int[] userMove;
+	private  Board brd;
 	
-	public Multiplayer(GameRepresentation g){
+	public Multiplayer(GameRepresentation g,Board b){
 		game=g;
+		brd=b;
 		piece=GameRepresentation.BLACK;
 	}
 	
