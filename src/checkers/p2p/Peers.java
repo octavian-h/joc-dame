@@ -39,6 +39,7 @@ public class Peers implements DiscoveryListener, ActionListener, PipeMsgListener
 	private final static int nrMaxCautari = 5;
 	private final static int intervalCautari = 5 * 1000;
 	private final static String pid = "urn:jxta:uuid-59616261646162614E504720503250338BDD512C72FE462EAE54E9948FF4C23E04";
+	private PipeAdvertisement pipeAdv;
 
 	private EventListenerList listenerList;
 
@@ -74,7 +75,8 @@ public class Peers implements DiscoveryListener, ActionListener, PipeMsgListener
 		ceas = new javax.swing.Timer(intervalCautari, this);
 		peerID = defaultPeerGroup.getPeerID();
 		peerName = defaultPeerGroup.getPeerName();
-		
+		pipeAdv = getPipeAdvertisement();
+
 		isRunning = false;
 	}
 
@@ -83,7 +85,7 @@ public class Peers implements DiscoveryListener, ActionListener, PipeMsgListener
 	 * 
 	 * @return pipe advertisement
 	 */
-	public PipeAdvertisement getPipeAdvertisement()
+	public static PipeAdvertisement getPipeAdvertisement()
 	{
 		PipeAdvertisement advertisement = (PipeAdvertisement) AdvertisementFactory
 				.newAdvertisement(PipeAdvertisement.getAdvertisementType());
@@ -104,6 +106,36 @@ public class Peers implements DiscoveryListener, ActionListener, PipeMsgListener
 	}
 
 	/**
+	 * Anunta prezenta partenerului in retea P2P. Durata de viata = timpul de
+	 * expirare = 2 min
+	 */
+	public void announce()
+	{
+		announce(60 * 2 * 1000, 60 * 2 * 1000);
+	}
+
+	/**
+	 * Anunta prezenta partenerului in retea P2P.
+	 * 
+	 * @param lifetime
+	 *            durata de existenta a acestui advertisement
+	 * @param expiration
+	 *            durata de pastrare a acestui advertisement de catre ceilalti
+	 *            parteneri
+	 */
+	public void announce(long lifetime, long expiration)
+	{
+		try
+		{
+			discovery.publish(pipeAdv, lifetime, expiration);
+			discovery.remotePublish(peerID.toString(), pipeAdv, expiration);
+		}
+		catch (IOException e)
+		{
+		}
+	}
+
+	/**
 	 * Porneste serviciile.
 	 */
 	public void start()
@@ -114,15 +146,16 @@ public class Peers implements DiscoveryListener, ActionListener, PipeMsgListener
 			discovery.addDiscoveryListener(this);
 			try
 			{
-				inputPipe = pipeService.createInputPipe(getPipeAdvertisement(), this);
-				//outputPipe = pipeService.createOutputPipe(getPipeAdvertisement(), 1000);
-				pipeService.createOutputPipe(getPipeAdvertisement(), this);
+				announce();
+				inputPipe = pipeService.createInputPipe(pipeAdv, this);
+				// outputPipe = pipeService.createOutputPipe(pipeAdv, 1000);
+				pipeService.createOutputPipe(pipeAdv, this);
 			}
 			catch (IOException e)
 			{
 				System.out.println("Eroare (Peers): Nu s-a putut crea input/output pipe.");
 			}
-			
+
 		}
 	}
 
@@ -162,6 +195,7 @@ public class Peers implements DiscoveryListener, ActionListener, PipeMsgListener
 	{
 		if (ceas.isRunning()) stopSearch();
 
+		announce();
 		numePeer = peerName;
 		System.out.println("Info (Peers): Cautare locala.");
 		searchLocal("Name", numePeer);
@@ -180,14 +214,14 @@ public class Peers implements DiscoveryListener, ActionListener, PipeMsgListener
 	{
 		ceas.stop();
 		System.out.println("Info (Peers): S-a oprit cautarea.");
-		Thread t=new Thread()
+		Thread t = new Thread()
 		{
 			public void run()
 			{
 				fireSearchFinished(getPeers());
 			}
 		};
-		t.start();		
+		t.start();
 	}
 
 	/**
@@ -212,7 +246,7 @@ public class Peers implements DiscoveryListener, ActionListener, PipeMsgListener
 			}
 			if (peers.size() != aux)
 			{
-				Thread t=new Thread()
+				Thread t = new Thread()
 				{
 					public void run()
 					{
@@ -220,7 +254,7 @@ public class Peers implements DiscoveryListener, ActionListener, PipeMsgListener
 					}
 				};
 				t.start();
-				
+
 			}
 		}
 	}
@@ -292,6 +326,7 @@ public class Peers implements DiscoveryListener, ActionListener, PipeMsgListener
 	public void discoveryEvent(DiscoveryEvent event)
 	{
 		DiscoveryResponseMsg rez = event.getResponse();
+		System.out.println("Info (Peers): DiscoveryEvent");
 		addPeers(rez.getAdvertisements());
 	}
 
@@ -312,21 +347,25 @@ public class Peers implements DiscoveryListener, ActionListener, PipeMsgListener
 	/**
 	 * Trimite un mesaj prin output pipe.
 	 * 
+	 * @param toID
+	 *            id-ul partenerului la care se trimite mesajul
 	 * @param message
 	 *            mesajul de trimis
-	 * @return true daca s-a reusit trimiterea 
+	 * @return true daca s-a reusit trimiterea
 	 */
-	public boolean sendMessage(String message)
+	public boolean sendMessage(String toID, String message)
 	{
-
 		if (outputPipe != null)
 		{
 			Message msg = new Message();
-			StringMessageElement senderID = new StringMessageElement("SenderID", peerID.toString(), null);
-			StringMessageElement senderName = new StringMessageElement("SenderName", peerName, null);			
+			StringMessageElement senderID = new StringMessageElement("SenderID", peerID.toString(),
+					null);
+			StringMessageElement senderName = new StringMessageElement("SenderName", peerName, null);
+			StringMessageElement receiverID = new StringMessageElement("ReceiverID", toID, null);
 			StringMessageElement data = new StringMessageElement("Data", message, null);
 			msg.addMessageElement("CheckerMessage", senderID);
 			msg.addMessageElement("CheckerMessage", senderName);
+			msg.addMessageElement("CheckerMessage", receiverID);
 			msg.addMessageElement("CheckerMessage", data);
 			try
 			{
@@ -349,25 +388,29 @@ public class Peers implements DiscoveryListener, ActionListener, PipeMsgListener
 		System.out.println("Info (Peers): PipeMsgEvent");
 		if (msg != null)
 		{
-			final MessageElement senderID = msg.getMessageElement("CheckerMessage", "SenderID");
-			if (senderID != null && !senderID.toString().equals(peerID.toString()))
+			final MessageElement receiverID = msg.getMessageElement("CheckerMessage", "ReceiverID");
+			if (receiverID != null && receiverID.toString().equals(peerID.toString()))
 			{
-				final MessageElement senderName = msg.getMessageElement("CheckerMessage", "SenderName");
-				if(senderName != null)
+				final MessageElement senderID = msg.getMessageElement("CheckerMessage", "SenderID");
+				if (senderID != null && !senderID.toString().equals(peerID.toString()))
 				{
+					final MessageElement senderName = msg.getMessageElement("CheckerMessage",
+							"SenderName");
 					final MessageElement data = msg.getMessageElement("CheckerMessage", "Data");
-					if (data != null)
+					if (senderName != null && data != null)
 					{
+
 						System.out.println("Info (Peers): s-a primit un mesaj de la " + senderName
 								+ " ce contine [" + data.toString() + "]");
-						Thread t=new Thread()
+						Thread t = new Thread()
 						{
 							public void run()
 							{
-								fireMessageReceived(senderID.toString(), senderName.toString(), data.toString());
+								fireMessageReceived(senderID.toString(), senderName.toString(),
+										data.toString());
 							}
 						};
-						t.start();					
+						t.start();
 					}
 				}
 			}
@@ -380,14 +423,14 @@ public class Peers implements DiscoveryListener, ActionListener, PipeMsgListener
 	public void outputPipeEvent(OutputPipeEvent event)
 	{
 		outputPipe = event.getOutputPipe();
-		Thread t=new Thread()
+		Thread t = new Thread()
 		{
 			public void run()
 			{
 				fireOutputPipeReady();
 			}
 		};
-		t.start();		
+		t.start();
 	}
 
 	/**
@@ -420,7 +463,7 @@ public class Peers implements DiscoveryListener, ActionListener, PipeMsgListener
 			listeners[i].stateChanged(new P2PEvent(this, P2PEvent.PEER_READY));
 		}
 	}
-	
+
 	/**
 	 * Notifica schimbarea continutului listei de parteneri.
 	 * 
@@ -467,7 +510,8 @@ public class Peers implements DiscoveryListener, ActionListener, PipeMsgListener
 
 		for (int i = listeners.length - 1; i >= 0; --i)
 		{
-			listeners[i].stateChanged(new P2PEvent(this, P2PEvent.MESSAGE_RECEIVED, senderID, senderName, data));
+			listeners[i].stateChanged(new P2PEvent(this, P2PEvent.MESSAGE_RECEIVED, senderID,
+					senderName, data));
 		}
 	}
 }
