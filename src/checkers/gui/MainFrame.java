@@ -145,7 +145,7 @@ public class MainFrame extends JFrame implements ActionListener{
 		if(e.getSource()==multiple){
 			game=new GameRepresentation();
 			
-			multiuser=new Multiplayer(game);
+			
 			if(checkersBoard==null)
 				checkersBoard=new Board(game,info, null,multiuser,2);
 			else{
@@ -154,6 +154,7 @@ public class MainFrame extends JFrame implements ActionListener{
 				checkersBoard=new Board(game,info, null,multiuser,2);
 				info=new InfoPane();
 			}
+			multiuser=new Multiplayer(game,checkersBoard);
 			info.setGame(game);
 			checkersBoard.updateBoard();
 			this.getContentPane().add(info,BorderLayout.NORTH);
