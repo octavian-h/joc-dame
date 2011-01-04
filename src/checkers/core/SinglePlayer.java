@@ -19,7 +19,7 @@ public class SinglePlayer {
 	}
 	
 	public boolean makeMove(){
-	
+		
 		return game.move(userMove[0], userMove[1], userMove[2], userMove[3]);
 		
 	}
