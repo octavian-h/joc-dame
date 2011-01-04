@@ -119,14 +119,14 @@ public class Groups implements DiscoveryListener, ActionListener
 	{
 		ceas.stop();
 		System.out.println("Info (Groups): S-a oprit cautarea.");
-		Thread t=new Thread()
+		Thread t = new Thread()
 		{
 			public void run()
 			{
 				fireSearchFinished(getGroups());
 			}
 		};
-		t.start();		
+		t.start();
 	}
 
 	/**
@@ -157,7 +157,7 @@ public class Groups implements DiscoveryListener, ActionListener
 			}
 			if (groups.size() != aux)
 			{
-				Thread t=new Thread()
+				Thread t = new Thread()
 				{
 					public void run()
 					{
@@ -234,9 +234,10 @@ public class Groups implements DiscoveryListener, ActionListener
 		}
 		catch (PeerGroupException e)
 		{
-			System.out.println("Eroare (Groups): nu s-au putut crea grupul din PeerGroupAdvertisement.");
+			System.out
+					.println("Eroare (Groups): nu s-au putut crea grupul din PeerGroupAdvertisement.");
 		}
-		
+
 		return primul;
 	}
 
@@ -286,7 +287,7 @@ public class Groups implements DiscoveryListener, ActionListener
 		{
 			System.out.println("Eroare (Groups): Nu s-a putut crea noul grup.");
 		}
-		
+
 		return newGroup;
 	}
 
@@ -314,7 +315,7 @@ public class Groups implements DiscoveryListener, ActionListener
 		catch (Exception e)
 		{
 			System.out.println("Eroare (Groups): Nu s-a putut crea noul authenticator-ul.");
-		}		
+		}
 
 		return false;
 	}
@@ -384,7 +385,8 @@ public class Groups implements DiscoveryListener, ActionListener
 
 		for (int i = listeners.length - 1; i >= 0; --i)
 		{
-			listeners[i].stateChanged(new P2PEvent(this, P2PEvent.GROUP_SEARCH_FINISHED, groupsList));
+			listeners[i]
+					.stateChanged(new P2PEvent(this, P2PEvent.GROUP_SEARCH_FINISHED, groupsList));
 		}
 	}
 }
