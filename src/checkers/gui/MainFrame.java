@@ -27,6 +27,7 @@ public class MainFrame extends JFrame implements ActionListener{
 	private GameRepresentation game;
 	private InfoPane info;
 	private SinglePlayer user;
+	private Multiplayer multiuser;
 	private JMenuBar menuBar;
 	private JMenu fileMenu;
 	private JMenuItem single;
@@ -77,11 +78,11 @@ public class MainFrame extends JFrame implements ActionListener{
 			
 			user=new SinglePlayer(game);
 			if(checkersBoard==null)
-				checkersBoard=new Board(game,info, user,1);
+				checkersBoard=new Board(game,info, user,null,1);
 			else{
 				this.remove(info);
 				this.remove(checkersBoard);
-				checkersBoard=new Board(game,info, user,1);
+				checkersBoard=new Board(game,info, user,null,1);
 				info=new InfoPane();
 			}
 			info.setGame(game);
@@ -144,13 +145,13 @@ public class MainFrame extends JFrame implements ActionListener{
 		if(e.getSource()==multiple){
 			game=new GameRepresentation();
 			
-			user=new Multiplayer(game);
+			multiuser=new Multiplayer(game);
 			if(checkersBoard==null)
-				checkersBoard=new Board(game,info, user,2);
+				checkersBoard=new Board(game,info, null,multiuser,2);
 			else{
 				this.remove(info);
 				this.remove(checkersBoard);
-				checkersBoard=new Board(game,info, user,2);
+				checkersBoard=new Board(game,info, null,multiuser,2);
 				info=new InfoPane();
 			}
 			info.setGame(game);
