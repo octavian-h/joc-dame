@@ -302,15 +302,6 @@ public class Groups implements DiscoveryListener, ActionListener
 	 */
 	public boolean joinGroup(PeerGroup group)
 	{
-		try
-		{
-			Thread.sleep(1000);
-		}
-		catch (InterruptedException e1)
-		{
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
 		AuthenticationCredential cred = new AuthenticationCredential(group, null, null);
 		MembershipService membershipService = group.getMembershipService();
 		Authenticator authenticator;

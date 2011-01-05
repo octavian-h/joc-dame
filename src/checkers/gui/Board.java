@@ -302,6 +302,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener{
 					slots[i][j].setIcon(kingBlack);
 				slots[i][j].validate();
 			}
+		info.updateInfo();
 		
 	}
 	
