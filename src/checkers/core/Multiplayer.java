@@ -15,10 +15,9 @@ public class Multiplayer implements P2PListener
 	private Connection connection;
 	private String receiverID;
 
-	public Multiplayer(Connection c, String rid, GameRepresentation g, Board b, int p)
+	public Multiplayer(Connection c, String rid, GameRepresentation g, int p)
 	{
-		game = g;
-		brd = b;
+		game = g;		
 		piece = p;
 		connection = c;
 		receiverID = rid;
@@ -42,6 +41,10 @@ public class Multiplayer implements P2PListener
 
 	}
 
+	public void setBoard(Board b)
+	{
+		brd = b;
+	}
 	public int getPiece()
 	{
 		return piece;

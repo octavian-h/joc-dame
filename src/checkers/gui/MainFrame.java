@@ -181,6 +181,8 @@ public class MainFrame extends JFrame implements ActionListener
 	{
 		addPlayerNames(peerName, playerName);
 		game = new GameRepresentation();
+		multiuser = new Multiplayer(connection, playerID, game, culoare);
+		
 		if (checkersBoard == null) checkersBoard = new Board(game, info, null, multiuser, 2);
 		else
 		{
@@ -189,7 +191,7 @@ public class MainFrame extends JFrame implements ActionListener
 			checkersBoard = new Board(game, info, null, multiuser, 2);
 			info = new InfoPane();
 		}
-		multiuser = new Multiplayer(connection, playerID, game, checkersBoard, culoare);
+		multiuser.setBoard(checkersBoard);
 		info.setGame(game);
 		checkersBoard.updateBoard();
 		this.getContentPane().add(info, BorderLayout.NORTH);
