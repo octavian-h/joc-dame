@@ -203,10 +203,12 @@ public class Connection implements P2PListener
 				System.out.println("Info (Connection): A fost gasit grupul.");
 
 				checkersGroup = groups.getFirstGroup();
+				/*
 				if (!groups.joinGroup(checkersGroup))
 				{
 					System.out.println("Info (Connection): Nu s-a putut face join!");
 				}
+				*/
 				peers = new Peers(netPeerGroup); // checkersGroup
 				peers.addP2PListener(this);
 				peers.start();
@@ -228,11 +230,12 @@ public class Connection implements P2PListener
 					}
 					checkersGroup = groups.createGroup(groupID, "CheckersGroup",
 							"Group for checkers game.");
+					/*
 					if (!groups.joinGroup(checkersGroup))
 					{
 						System.out.println("Info (Connection): Nu s-a putut face join!");
 					}
-					groups.joinGroup(checkersGroup);
+					*/
 					peers = new Peers(netPeerGroup); // checkersGroup
 					peers.addP2PListener(this);
 					peers.start();
@@ -242,6 +245,9 @@ public class Connection implements P2PListener
 			}
 			case P2PEvent.MESSAGE_RECEIVED:
 			{
+				System.out.println("Info (Connection): s-a primit un mesaj de la " + event.getSenderName()
+						+ " ce contine [" + event.getMessage() + "]");
+				
 				fireMessageReceived(event.getSenderID(), event.getSenderName(), event.getMessage());
 				break;
 			}
