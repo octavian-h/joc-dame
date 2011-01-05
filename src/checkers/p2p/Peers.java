@@ -37,7 +37,7 @@ public class Peers implements DiscoveryListener, ActionListener, PipeMsgListener
 {
 	private final static int nrMaxPeers = 10;
 	private final static int nrMaxCautari = 5;
-	private final static int intervalCautari = 5 * 1000;
+	private final static int intervalCautari = 1000;
 	private final static String pid = "urn:jxta:uuid-59616261646162614E504720503250338BDD512C72FE462EAE54E9948FF4C23E04";
 	private PipeAdvertisement pipeAdv;
 
@@ -123,16 +123,19 @@ public class Peers implements DiscoveryListener, ActionListener, PipeMsgListener
 	 *            durata de pastrare a acestui advertisement de catre ceilalti
 	 *            parteneri
 	 */
-	public void announce(long lifetime, long expiration)
+	public void announce(final long lifetime, final long expiration)
 	{
 		try
 		{
-			discovery.publish(pipeAdv, lifetime, expiration);
-			discovery.remotePublish(peerID.toString(), pipeAdv, expiration);
+			discovery.publish(pipeAdv);//, lifetime, expiration);
+			discovery.remotePublish(peerID.toString(), pipeAdv);//, expiration);
 		}
 		catch (IOException e)
 		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+		
 	}
 
 	/**
@@ -214,6 +217,8 @@ public class Peers implements DiscoveryListener, ActionListener, PipeMsgListener
 	{
 		ceas.stop();
 		System.out.println("Info (Peers): S-a oprit cautarea.");
+		
+		
 		Thread t = new Thread()
 		{
 			public void run()
@@ -240,12 +245,18 @@ public class Peers implements DiscoveryListener, ActionListener, PipeMsgListener
 				if (item instanceof PeerAdvertisement)
 				{
 					PeerAdvertisement pa = (PeerAdvertisement) item;
-					peers.put(pa.getPeerID().toString(), pa.getName());
-					System.out.println("Info (Peers): A fost gasit:" + pa.getName());
+					if(!pa.getPeerID().equals(peerID))
+					{
+						peers.put(pa.getPeerID().toString(), pa.getName());
+						System.out.println("Info (Peers): A fost gasit:" + pa.getName());
+					}
+					else System.out.println("Info (Peers): Adv-ul meu");
 				}
 			}
 			if (peers.size() != aux)
 			{
+				
+				
 				Thread t = new Thread()
 				{
 					public void run()
@@ -326,7 +337,7 @@ public class Peers implements DiscoveryListener, ActionListener, PipeMsgListener
 	public void discoveryEvent(DiscoveryEvent event)
 	{
 		DiscoveryResponseMsg rez = event.getResponse();
-		System.out.println("Info (Peers): DiscoveryEvent");
+		//System.out.println("Info (Peers): DiscoveryEvent");
 		addPeers(rez.getAdvertisements());
 	}
 
@@ -358,8 +369,7 @@ public class Peers implements DiscoveryListener, ActionListener, PipeMsgListener
 		if (outputPipe != null)
 		{
 			Message msg = new Message();
-			StringMessageElement senderID = new StringMessageElement("SenderID", peerID.toString(),
-					null);
+			StringMessageElement senderID = new StringMessageElement("SenderID", peerID.toString(),	null);
 			StringMessageElement senderName = new StringMessageElement("SenderName", peerName, null);
 			StringMessageElement receiverID = new StringMessageElement("ReceiverID", toID, null);
 			StringMessageElement data = new StringMessageElement("Data", message, null);
@@ -423,14 +433,17 @@ public class Peers implements DiscoveryListener, ActionListener, PipeMsgListener
 	public void outputPipeEvent(OutputPipeEvent event)
 	{
 		outputPipe = event.getOutputPipe();
+		fireOutputPipeReady();
+		/*
 		Thread t = new Thread()
 		{
 			public void run()
 			{
-				fireOutputPipeReady();
+				
 			}
 		};
 		t.start();
+		*/
 	}
 
 	/**

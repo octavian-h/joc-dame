@@ -149,11 +149,18 @@ public class MainFrame extends JFrame implements ActionListener
 		{
 			String peerName = (String) JOptionPane.showInputDialog(this, "Your name:",
 					"Checkers - Player name", JOptionPane.INFORMATION_MESSAGE);
+			if(!Connection.isValid(peerName))
+			{
+				JOptionPane.showMessageDialog(this,
+						"Name is empty or contains illegal characters.", "Error",
+						JOptionPane.ERROR_MESSAGE);
+				return;
+			}
 			if (connection == null)
 			{
 				try
 				{
-					connection = new Connection(peerName);
+					connection = new Connection(peerName);					
 				}
 				catch (IOException e1)
 				{
