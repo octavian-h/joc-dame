@@ -35,6 +35,7 @@ public class MainFrame extends JFrame implements ActionListener
 
 	public MainFrame()
 	{
+		super("Checkers");
 		menuBar = new JMenuBar();
 		fileMenu = new JMenu("File");
 		single = new JMenuItem("Single Player");
@@ -157,6 +158,7 @@ public class MainFrame extends JFrame implements ActionListener
 						JOptionPane.ERROR_MESSAGE);
 				return;
 			}
+			this.setTitle("Checkers - "+peerName);
 			if (connection == null)
 			{
 				try
@@ -179,7 +181,8 @@ public class MainFrame extends JFrame implements ActionListener
 
 	public void startMultiplayer(String playerID, String playerName, int culoare)
 	{
-		addPlayerNames(peerName, playerName);
+		if(culoare == GameRepresentation.BLACK) addPlayerNames(peerName, playerName);
+		else addPlayerNames(playerName, peerName);
 		game = new GameRepresentation();
 		multiuser = new Multiplayer(connection, playerID, game, culoare);
 		

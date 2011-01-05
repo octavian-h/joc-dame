@@ -119,7 +119,7 @@ public class Connection implements P2PListener
 	{
 		if (peers != null)
 		{
-			peers.flush();
+			//peers.flush();
 			peers.search();
 		}
 	}
