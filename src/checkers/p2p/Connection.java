@@ -146,9 +146,9 @@ public class Connection implements P2PListener
 		if (peers != null) peers.stopSearch();
 	}
 
-	private boolean isValid(String s)
+	public static boolean isValid(String s)
 	{
-		Pattern p = Pattern.compile("\\w");// a-z A-Z _ 0-9
+		Pattern p = Pattern.compile("\\w*");// a-z A-Z _ 0-9
 		Matcher m = p.matcher(s);
 		return m.matches();
 	}

@@ -14,7 +14,6 @@ import net.jxta.discovery.DiscoveryListener;
 import net.jxta.discovery.DiscoveryService;
 import net.jxta.document.Advertisement;
 import net.jxta.exception.PeerGroupException;
-//import net.jxta.exception.PeerGroupException;
 import net.jxta.id.IDFactory;
 import net.jxta.membership.Authenticator;
 import net.jxta.membership.MembershipService;
@@ -35,7 +34,7 @@ public class Groups implements DiscoveryListener, ActionListener
 {
 	private final static int nrMaxGrupe = 1;
 	private final static int nrMaxCautari = 5;
-	private final static int intervalCautari = 5 * 1000;
+	private final static int intervalCautari = 1000;
 
 	private EventListenerList listenerList;
 
@@ -119,6 +118,8 @@ public class Groups implements DiscoveryListener, ActionListener
 	{
 		ceas.stop();
 		System.out.println("Info (Groups): S-a oprit cautarea.");
+		
+		
 		Thread t = new Thread()
 		{
 			public void run()
@@ -157,6 +158,8 @@ public class Groups implements DiscoveryListener, ActionListener
 			}
 			if (groups.size() != aux)
 			{
+				
+				
 				Thread t = new Thread()
 				{
 					public void run()
@@ -165,6 +168,7 @@ public class Groups implements DiscoveryListener, ActionListener
 					}
 				};
 				t.start();
+				
 			}
 		}
 	}
@@ -234,8 +238,7 @@ public class Groups implements DiscoveryListener, ActionListener
 		}
 		catch (PeerGroupException e)
 		{
-			System.out
-					.println("Eroare (Groups): nu s-au putut crea grupul din PeerGroupAdvertisement.");
+			System.out.println("Eroare (Groups): nu s-au putut crea grupul din PeerGroupAdvertisement.");
 		}
 
 		return primul;
@@ -280,8 +283,8 @@ public class Groups implements DiscoveryListener, ActionListener
 			newGroup = defaultPeerGroup.newGroup(groupID, implAdv, name, description);
 			PeerGroupAdvertisement groupAdv = newGroup.getPeerGroupAdvertisement();
 
-			DiscoveryService discovery = defaultPeerGroup.getDiscoveryService();
-			discovery.remotePublish(groupAdv, DiscoveryService.GROUP);
+			discovery.publish(groupAdv);
+			discovery.remotePublish(groupAdv);
 		}
 		catch (Exception e)
 		{
@@ -290,7 +293,7 @@ public class Groups implements DiscoveryListener, ActionListener
 
 		return newGroup;
 	}
-
+	
 	/**
 	 * Asociaza partenerul local la group.
 	 * 
@@ -299,6 +302,15 @@ public class Groups implements DiscoveryListener, ActionListener
 	 */
 	public boolean joinGroup(PeerGroup group)
 	{
+		try
+		{
+			Thread.sleep(1000);
+		}
+		catch (InterruptedException e1)
+		{
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		AuthenticationCredential cred = new AuthenticationCredential(group, null, null);
 		MembershipService membershipService = group.getMembershipService();
 		Authenticator authenticator;
