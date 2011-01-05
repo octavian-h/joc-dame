@@ -31,6 +31,7 @@ public class MainFrame extends JFrame implements ActionListener
 	private JMenuItem instr;
 	private JMenuItem about;
 	private Connection connection;
+	private String peerName;
 
 	public MainFrame()
 	{
@@ -147,7 +148,7 @@ public class MainFrame extends JFrame implements ActionListener
 		}
 		if (e.getSource() == multiple)
 		{
-			String peerName = (String) JOptionPane.showInputDialog(this, "Your name:",
+			peerName = (String) JOptionPane.showInputDialog(this, "Your name:",
 					"Checkers - Player name", JOptionPane.INFORMATION_MESSAGE);
 			if(!Connection.isValid(peerName))
 			{
@@ -178,6 +179,7 @@ public class MainFrame extends JFrame implements ActionListener
 
 	public void startMultiplayer(String playerID, String playerName, int culoare)
 	{
+		addPlayerNames(peerName, playerName);
 		game = new GameRepresentation();
 		if (checkersBoard == null) checkersBoard = new Board(game, info, null, multiuser, 2);
 		else
@@ -187,7 +189,7 @@ public class MainFrame extends JFrame implements ActionListener
 			checkersBoard = new Board(game, info, null, multiuser, 2);
 			info = new InfoPane();
 		}
-		multiuser = new Multiplayer(game, checkersBoard, culoare);
+		multiuser = new Multiplayer(connection, playerID, game, checkersBoard, culoare);
 		info.setGame(game);
 		checkersBoard.updateBoard();
 		this.getContentPane().add(info, BorderLayout.NORTH);
