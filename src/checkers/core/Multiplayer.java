@@ -21,6 +21,8 @@ public class Multiplayer implements P2PListener
 		piece = p;
 		connection = c;
 		receiverID = rid;
+		connection.addP2PListener(this);
+		userMove = new int[4];
 	}
 
 	public void getUserInput(int[] uM)
@@ -94,6 +96,7 @@ public class Multiplayer implements P2PListener
 					if(ok)
 					{
 						game.move(userMove[0], userMove[1], userMove[2], userMove[3]);
+						brd.updateBoard();
 					}						
 				}
 			}
