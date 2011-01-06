@@ -31,7 +31,7 @@ public class MainFrame extends JFrame implements ActionListener
 	private JMenuItem instr;
 	private JMenuItem about;
 	private Connection connection;
-	private String peerName;
+	private String playerName;
 
 	public MainFrame()
 	{
@@ -58,7 +58,9 @@ public class MainFrame extends JFrame implements ActionListener
 		menuBar.add(helpMenu);
 		this.setJMenuBar(menuBar);
 		info = new InfoPane();
+		playerName = findPlayerName();
 
+		this.setTitle("Checkers - " + playerName);
 		this.getContentPane().add(info, BorderLayout.NORTH);
 
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -149,21 +151,11 @@ public class MainFrame extends JFrame implements ActionListener
 		}
 		if (e.getSource() == multiple)
 		{
-			peerName = (String) JOptionPane.showInputDialog(this, "Your name:",
-					"Checkers - Player name", JOptionPane.INFORMATION_MESSAGE);
-			if(!Connection.isValid(peerName))
-			{
-				JOptionPane.showMessageDialog(this,
-						"Name is empty or contains illegal characters.", "Error",
-						JOptionPane.ERROR_MESSAGE);
-				return;
-			}
-			this.setTitle("Checkers - "+peerName);
 			if (connection == null)
 			{
 				try
 				{
-					connection = new Connection(peerName);					
+					connection = new Connection(playerName);					
 				}
 				catch (IOException e1)
 				{
@@ -175,16 +167,36 @@ public class MainFrame extends JFrame implements ActionListener
 			PeerFrame pf = new PeerFrame(this, connection);
 		}
 	}
+	
 	public void addPlayerNames(String player1, String player2){
 		info.updatePlayerNames(player1, player2);
 	}
 
-	public void startMultiplayer(String playerID, String playerName, int culoare)
+	private String findPlayerName()
 	{
-		if(culoare == GameRepresentation.BLACK) addPlayerNames(peerName, playerName);
-		else addPlayerNames(playerName, peerName);
+		boolean ok = false;
+		String name = "";
+		while (!ok)
+		{
+			name = (String) JOptionPane.showInputDialog(this, "Your name:",
+					"Checkers - Player name", JOptionPane.INFORMATION_MESSAGE);
+			if (!Connection.isValid(name))
+			{
+				JOptionPane.showMessageDialog(this,
+						"Name is empty or contains illegal characters.", "Error",
+						JOptionPane.ERROR_MESSAGE);
+			}
+			else ok = true;
+		}
+		return name;
+	}
+	public void startMultiplayer(String opponentID, String opponentName, int myColor)
+	{
+		if(myColor == GameRepresentation.BLACK) addPlayerNames(playerName, opponentName);
+		else addPlayerNames(opponentName, playerName);
+		
 		game = new GameRepresentation();
-		multiuser = new Multiplayer(connection, playerID, game, culoare);
+		multiuser = new Multiplayer(connection, opponentID, game, myColor);
 		
 		if (checkersBoard == null) checkersBoard = new Board(game, info, null, multiuser, 2);
 		else

@@ -20,7 +20,6 @@ import checkers.util.ModelLista;
  * 
  * @author Hasna Octavian-Lucian
  */
-
 public class PeerFrame extends JFrame implements ActionListener, P2PListener
 {
 	private Connection connection;
@@ -124,7 +123,15 @@ public class PeerFrame extends JFrame implements ActionListener, P2PListener
 		jp.add(bIesire);
 		return jp;
 	}
-
+	
+	private void incepeJocul(String opponentID, String opponentName, int myColor)
+	{
+		connection.stopSearching();
+		connection.removeP2PListener(this);
+		parinte.startMultiplayer(opponentID, opponentName, myColor);
+		this.dispose();
+	}
+	
 	/**
 	 * Se ocupa cu evenimentele din fereastra Invite.
 	 */
@@ -139,11 +146,11 @@ public class PeerFrame extends JFrame implements ActionListener, P2PListener
 				{
 					if (!connection.isReady())
 					{
-						JOptionPane.showMessageDialog(this, "P2P Connection not ready. Retry.", "Error",
-								JOptionPane.ERROR_MESSAGE);
+						JOptionPane.showMessageDialog(this, "P2P Connection not ready. Retry.",
+								"Error", JOptionPane.ERROR_MESSAGE);
 					}
 					else
-					{	
+					{
 						connection.searchPeers();
 						bCauta.setText("Stop searching");
 						bInvita.setEnabled(false);
@@ -160,18 +167,19 @@ public class PeerFrame extends JFrame implements ActionListener, P2PListener
 			{
 				if (!connection.isReady())
 				{
-					JOptionPane.showMessageDialog(this, "P2P Connection not ready. Retry.", "Error",
-							JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(this, "P2P Connection not ready. Retry.",
+							"Error", JOptionPane.ERROR_MESSAGE);
 				}
 				else
-				{					
+				{
 					Entry<String, String> item = lista.getSelectedValue();
 					if (item != null)
 					{
 						invitatID = lista.getSelectedValue().getKey();
 						String aux = lista.getSelectedValue().getValue();
-						if(!aux.endsWith(" - invited")) aux += " - invited";
-						mLista.setElementAt(lista.getSelectedIndex(), new Entry<String, String>(invitatID, aux));
+						if (!aux.endsWith(" - invited")) aux += " - invited";
+						mLista.setElementAt(lista.getSelectedIndex(), new Entry<String, String>(
+								invitatID, aux));
 						connection.sendMessage(invitatID, "i ask");
 					}
 					else
@@ -191,15 +199,10 @@ public class PeerFrame extends JFrame implements ActionListener, P2PListener
 
 	}
 
-	private void incepeJocul(String playerID, String playerName, int culoare)
-	{
-		connection.stopSearching();
-		connection.removeP2PListener(this);
-		parinte.startMultiplayer(playerID, playerName, culoare);
-		this.dispose();
-	}
-
-	@Override
+	/**
+	 * Se ocupa cu evenimentele generate de reteaua P2P la gasirea unui partener
+	 * si la primirea unui mesaj.
+	 */
 	public void stateChanged(P2PEvent event)
 	{
 		switch (event.getTip())
