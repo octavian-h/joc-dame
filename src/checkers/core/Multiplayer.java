@@ -32,12 +32,6 @@ public class Multiplayer implements P2PListener
 
 	public boolean makeMove()
 	{
-		// Aici trebuie transmis sirul userMove catre celalat jucator iar cand
-		// primeste
-		// sirul(deci in metoda de recive) jucatorul trebui sa faca un
-		// game.move(userMove[0], userMove[1], userMove[2], userMove[3]) pentru
-		// a se modifica
-		// matricea de joc
 		connection.sendMessage(receiverID, convertUserMoveToString());
 		return game.move(userMove[0], userMove[1], userMove[2], userMove[3]);
 
@@ -47,6 +41,7 @@ public class Multiplayer implements P2PListener
 	{
 		brd = b;
 	}
+	
 	public int getPiece()
 	{
 		return piece;
@@ -68,10 +63,9 @@ public class Multiplayer implements P2PListener
 					userMove[j] = Character.digit(message.charAt(i), 10);
 					j++;
 				}
-			return true;
+			if(j == 4) return true;
 		}
-		else return false;
-
+		return false;
 	}
 
 	public String convertUserMoveToString()
