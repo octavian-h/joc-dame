@@ -8,10 +8,14 @@ public class SinglePlayer {
 	private int[] userMove;
 	
 	
-	public SinglePlayer(GameRepresentation g){
+	public SinglePlayer(){
 		
-		game=g;
+		
 		userMove=new int[4];
+	}
+	
+	public void setGame(GameRepresentation g){
+		game=g;
 	}
 	
 	public void getUserInput(int[] uM){
