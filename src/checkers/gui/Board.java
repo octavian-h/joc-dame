@@ -65,8 +65,8 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener{
 	/**
 	 * Constructor for the board: draws the board and lays out the pieces
 	 */
-	public Board(GameRepresentation g, InfoPane inf, SinglePlayer u,Multiplayer mu, int m){
-		game=g;
+	public Board(InfoPane inf, SinglePlayer u,Multiplayer mu, int m){
+		game=new GameRepresentation();
 		mode=m;
 		info=inf;
 		if(mode==2)
@@ -125,7 +125,9 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener{
 		
 	}
 	
-	
+	public GameRepresentation getGame(){
+		return game;
+	}
 	
 
 	@Override

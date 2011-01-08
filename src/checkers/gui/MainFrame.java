@@ -18,7 +18,6 @@ import checkers.p2p.Connection;
 public class MainFrame extends JFrame implements ActionListener
 {
 	private Board checkersBoard;
-	private GameRepresentation game;
 	private InfoPane info;
 	private SinglePlayer user;
 	private Multiplayer multiuser;
@@ -76,18 +75,19 @@ public class MainFrame extends JFrame implements ActionListener
 		}
 		if (e.getSource() == single)
 		{
-			game = new GameRepresentation();
+			
 
-			user = new SinglePlayer(game);
-			if (checkersBoard == null) checkersBoard = new Board(game, info, user, null, 1);
+			user = new SinglePlayer();
+			if (checkersBoard == null) checkersBoard = new Board(info, user, null, 1);
 			else
 			{
 				this.remove(info);
 				this.remove(checkersBoard);
-				checkersBoard = new Board(game, info, user, null, 1);
+				checkersBoard = new Board(info, user, null, 1);
 				info = new InfoPane();
 			}
-			info.setGame(game);
+			user.setGame(checkersBoard.getGame());
+			info.setGame(checkersBoard.getGame());
 			checkersBoard.updateBoard();
 			this.getContentPane().add(info, BorderLayout.NORTH);
 			this.getContentPane().add(checkersBoard, BorderLayout.CENTER);
@@ -195,19 +195,20 @@ public class MainFrame extends JFrame implements ActionListener
 		if(myColor == GameRepresentation.BLACK) addPlayerNames(playerName, opponentName);
 		else addPlayerNames(opponentName, playerName);
 		
-		game = new GameRepresentation();
-		multiuser = new Multiplayer(connection, opponentID, game, myColor);
 		
-		if (checkersBoard == null) checkersBoard = new Board(game, info, null, multiuser, 2);
+		multiuser = new Multiplayer(connection, opponentID, myColor);
+		
+		if (checkersBoard == null) checkersBoard = new Board(info, null, multiuser, 2);
 		else
 		{
 			this.remove(info);
 			this.remove(checkersBoard);
-			checkersBoard = new Board(game, info, null, multiuser, 2);
+			checkersBoard = new Board(info, null, multiuser, 2);
 			info = new InfoPane();
 		}
 		multiuser.setBoard(checkersBoard);
-		info.setGame(game);
+		multiuser.setGame(checkersBoard.getGame());
+		info.setGame(checkersBoard.getGame());
 		checkersBoard.updateBoard();
 		this.getContentPane().add(info, BorderLayout.NORTH);
 		this.getContentPane().add(checkersBoard, BorderLayout.CENTER);

@@ -15,16 +15,18 @@ public class Multiplayer implements P2PListener
 	private Connection connection;
 	private String receiverID;
 
-	public Multiplayer(Connection c, String rid, GameRepresentation g, int p)
+	public Multiplayer(Connection c, String rid, int p)
 	{
-		game = g;		
+			
 		piece = p;
 		connection = c;
 		receiverID = rid;
 		connection.addP2PListener(this);
 		userMove = new int[4];
 	}
-
+	public void setGame(GameRepresentation g){
+		game=g;
+	}
 	public void getUserInput(int[] uM)
 	{
 		userMove = uM;
