@@ -6,18 +6,26 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import javax.swing.*;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTextPane;
 
-import checkers.core.*;
+import checkers.core.GameRepresentation;
+import checkers.core.Multiplayer;
+import checkers.core.SinglePlayer;
 import checkers.p2p.Connection;
 
 public class MainFrame extends JFrame implements ActionListener
 {
 	private static final long serialVersionUID = -8884970490313600105L;
+	
 	private Board checkersBoard;
 	private InfoPane info;
 	private SinglePlayer user;
@@ -76,7 +84,6 @@ public class MainFrame extends JFrame implements ActionListener
 		}
 		if (e.getSource() == single)
 		{
-			
 
 			user = new SinglePlayer();
 			if (checkersBoard == null) checkersBoard = new Board(info, user, null, 1);
@@ -103,12 +110,9 @@ public class MainFrame extends JFrame implements ActionListener
 			text.setEditable(false);
 			text.setAlignmentX(CENTER_ALIGNMENT);
 			text.setAlignmentY(CENTER_ALIGNMENT);
-			text.setText("Checkers game V1.0\n\n"+
-						"       Authors:\n"+
-			            "    Hasna Octavian\n"+
-			            "    Forna Remus\n"+
-						"    Grupa 30231");
-			ab.add(text,BorderLayout.CENTER);
+			text.setText("Checkers game V1.0\n\n" + "       Authors:\n" + "    Hasna Octavian\n"
+					+ "    Forna Remus\n" + "    Grupa 30231");
+			ab.add(text, BorderLayout.CENTER);
 			ab.pack();
 			ab.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 			ab.setVisible(true);
@@ -122,10 +126,8 @@ public class MainFrame extends JFrame implements ActionListener
 			JScrollPane slider = new JScrollPane(text);
 			try
 			{
-
-				FileInputStream fstream = new FileInputStream(this.getClass().getResource("/resources/docs/Instructions.txt").getPath());
-
-				DataInputStream in = new DataInputStream(fstream);
+				DataInputStream in = new DataInputStream(this.getClass().getResourceAsStream(
+						"/resources/docs/Instructions.txt"));
 				BufferedReader br = new BufferedReader(new InputStreamReader(in));
 				String strLine;
 				while ((strLine = br.readLine()) != null)
@@ -156,7 +158,7 @@ public class MainFrame extends JFrame implements ActionListener
 			{
 				try
 				{
-					connection = new Connection(playerName);					
+					connection = new Connection(playerName);
 				}
 				catch (IOException e1)
 				{
@@ -169,8 +171,9 @@ public class MainFrame extends JFrame implements ActionListener
 			pf.setVisible(true);
 		}
 	}
-	
-	public void addPlayerNames(String player1, String player2){
+
+	public void addPlayerNames(String player1, String player2)
+	{
 		info.updatePlayerNames(player1, player2);
 	}
 
@@ -180,14 +183,13 @@ public class MainFrame extends JFrame implements ActionListener
 		String name = "";
 		while (!ok)
 		{
-			
 			name = (String) JOptionPane.showInputDialog(this, "Your name:",
 					"Checkers - Player name", JOptionPane.INFORMATION_MESSAGE);
 			if (name == null)
 			{
 				System.exit(0);
 			}
-			else if(!Connection.isValid(name))
+			else if (!Connection.isValid(name))
 			{
 				JOptionPane.showMessageDialog(this,
 						"Name is empty or contains illegal characters.", "Error",
@@ -197,14 +199,14 @@ public class MainFrame extends JFrame implements ActionListener
 		}
 		return name;
 	}
+
 	public void startMultiplayer(String opponentID, String opponentName, int myColor)
 	{
-		if(myColor == GameRepresentation.BLACK) addPlayerNames(playerName, opponentName);
+		if (myColor == GameRepresentation.BLACK) addPlayerNames(playerName, opponentName);
 		else addPlayerNames(opponentName, playerName);
-		
-		
+
 		multiuser = new Multiplayer(connection, opponentID, myColor);
-		
+
 		if (checkersBoard == null) checkersBoard = new Board(info, null, multiuser, 2);
 		else
 		{
