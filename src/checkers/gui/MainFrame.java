@@ -25,7 +25,7 @@ import checkers.p2p.Connection;
 public class MainFrame extends JFrame implements ActionListener
 {
 	private static final long serialVersionUID = -8884970490313600105L;
-	
+
 	private Board checkersBoard;
 	private InfoPane info;
 	private SinglePlayer user;

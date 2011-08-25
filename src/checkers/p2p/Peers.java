@@ -135,7 +135,6 @@ public class Peers implements DiscoveryListener, ActionListener, PipeMsgListener
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
 	}
 
 	/**
@@ -255,8 +254,6 @@ public class Peers implements DiscoveryListener, ActionListener, PipeMsgListener
 			}
 			if (peers.size() != aux)
 			{
-				
-				
 				Thread t = new Thread()
 				{
 					public void run()
@@ -265,7 +262,6 @@ public class Peers implements DiscoveryListener, ActionListener, PipeMsgListener
 					}
 				};
 				t.start();
-
 			}
 		}
 	}
@@ -358,10 +354,8 @@ public class Peers implements DiscoveryListener, ActionListener, PipeMsgListener
 	/**
 	 * Trimite un mesaj prin output pipe.
 	 * 
-	 * @param toID
-	 *            id-ul partenerului la care se trimite mesajul
-	 * @param message
-	 *            mesajul de trimis
+	 * @param toID id-ul partenerului la care se trimite mesajul
+	 * @param message mesajul de trimis
 	 * @return true daca s-a reusit trimiterea
 	 */
 	public boolean sendMessage(String toID, String message)
@@ -434,16 +428,6 @@ public class Peers implements DiscoveryListener, ActionListener, PipeMsgListener
 	{
 		outputPipe = event.getOutputPipe();
 		fireOutputPipeReady();
-		/*
-		Thread t = new Thread()
-		{
-			public void run()
-			{
-				
-			}
-		};
-		t.start();
-		*/
 	}
 
 	/**
@@ -510,12 +494,9 @@ public class Peers implements DiscoveryListener, ActionListener, PipeMsgListener
 	/**
 	 * Notifica primirea unui mesaj.
 	 * 
-	 * @param senderID
-	 *            id-ul partenerului care a trimis
-	 * @param senderName
-	 *            numele partenerului care a trimis
-	 * @param data
-	 *            mesajul trimis
+	 * @param senderID id-ul partenerului care a trimis
+	 * @param senderName numele partenerului care a trimis
+	 * @param data mesajul trimis
 	 */
 	private synchronized void fireMessageReceived(String senderID, String senderName, String data)
 	{

@@ -7,7 +7,6 @@ import checkers.p2p.event.P2PListener;
 
 public class Multiplayer implements P2PListener
 {
-
 	private int piece;
 	private GameRepresentation game;// model of the game
 	private int[] userMove;
@@ -17,16 +16,19 @@ public class Multiplayer implements P2PListener
 
 	public Multiplayer(Connection c, String rid, int p)
 	{
-			
+
 		piece = p;
 		connection = c;
 		receiverID = rid;
 		connection.addP2PListener(this);
 		userMove = new int[4];
 	}
-	public void setGame(GameRepresentation g){
-		game=g;
+
+	public void setGame(GameRepresentation g)
+	{
+		game = g;
 	}
+
 	public void getUserInput(int[] uM)
 	{
 		userMove = uM;
@@ -36,14 +38,13 @@ public class Multiplayer implements P2PListener
 	{
 		connection.sendMessage(receiverID, convertUserMoveToString());
 		return game.move(userMove[0], userMove[1], userMove[2], userMove[3]);
-
 	}
 
 	public void setBoard(Board b)
 	{
 		brd = b;
 	}
-	
+
 	public int getPiece()
 	{
 		return piece;
@@ -65,7 +66,7 @@ public class Multiplayer implements P2PListener
 					userMove[j] = Character.digit(message.charAt(i), 10);
 					j++;
 				}
-			if(j == 4) return true;
+			if (j == 4) return true;
 		}
 		return false;
 	}
@@ -85,17 +86,17 @@ public class Multiplayer implements P2PListener
 		{
 			case P2PEvent.MESSAGE_RECEIVED:
 			{
-				if(event.getSenderID().equals(receiverID))
+				if (event.getSenderID().equals(receiverID))
 				{
-					//ne-a trimis cel cu care jucam
-					boolean ok=convertMessageToUserMove(event.getMessage());
-					if(ok)
+					// ne-a trimis cel cu care jucam
+					boolean ok = convertMessageToUserMove(event.getMessage());
+					if (ok)
 					{
 						game.move(userMove[0], userMove[1], userMove[2], userMove[3]);
 						brd.updateBoard();
-					}						
+					}
 				}
 			}
-		}		
+		}
 	}
 }
