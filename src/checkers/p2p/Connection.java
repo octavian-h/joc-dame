@@ -269,10 +269,11 @@ public class Connection implements P2PListener
 			}
 		}
 	}
-
+	
 	/**
 	 * Notifica asocierea la grupul checkersGroup.
 	 */
+	/*
 	private void fireConnectionReady()
 	{
 		P2PListener[] listeners = listenerList.getListeners(P2PListener.class);
@@ -282,7 +283,7 @@ public class Connection implements P2PListener
 			listeners[i].stateChanged(new P2PEvent(this, P2PEvent.CONNECTION_READY));
 		}
 	}
-
+	 */
 	/**
 	 * Notifica schimbarea continutului listei de parteneri.
 	 * 

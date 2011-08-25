@@ -11,6 +11,7 @@ import checkers.core.GameRepresentation;
 
 public class InfoPane extends JPanel{
 	
+	private static final long serialVersionUID = -5890778534467905182L;
 	private JLabel blackPlayer;
 	private JLabel redPlayer;
 	private GameRepresentation game;

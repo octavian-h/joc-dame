@@ -17,7 +17,7 @@ public class P2PEvent extends java.util.EventObject
 	public static final int GROUP_SEARCH_FINISHED = 4;
 	public static final int MESSAGE_RECEIVED = 5;
 	public static final int PEER_READY = 6;
-	public static final int CONNECTION_READY = 7;
+	//public static final int CONNECTION_READY = 7;
 
 	private int tip;
 	private HashMap<String, String> list;

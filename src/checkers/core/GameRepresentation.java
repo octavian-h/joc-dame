@@ -1,6 +1,5 @@
 package checkers.core;
 
-import java.awt.Color;
 
 public class GameRepresentation {
 	

@@ -22,6 +22,7 @@ import checkers.util.ModelLista;
  */
 public class PeerFrame extends JFrame implements ActionListener, P2PListener
 {
+	private static final long serialVersionUID = 4954492248931029417L;
 	private Connection connection;
 	private JButton bCauta, bInvita, bIesire;
 	private JList<Entry<String, String>> lista;
@@ -61,7 +62,7 @@ public class PeerFrame extends JFrame implements ActionListener, P2PListener
 		// centreaza fereastra
 		Dimension size = getToolkit().getScreenSize();
 		setLocation(size.width / 2 - getWidth() / 2, size.height / 2 - getHeight() / 2);
-		setVisible(true);
+		//setVisible(true);
 	}
 
 	/**
