@@ -7,6 +7,7 @@ import checkers.core.GameRepresentation;
 
 public class LegalJump extends RecursiveAction{
 	
+	private static final long serialVersionUID = -1260990036224564511L;
 	private ArrayList<ComputerMove> legal;
 	private GameRepresentation game;
 	

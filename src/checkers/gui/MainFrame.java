@@ -17,6 +17,7 @@ import checkers.p2p.Connection;
 
 public class MainFrame extends JFrame implements ActionListener
 {
+	private static final long serialVersionUID = -8884970490313600105L;
 	private Board checkersBoard;
 	private InfoPane info;
 	private SinglePlayer user;
@@ -122,7 +123,7 @@ public class MainFrame extends JFrame implements ActionListener
 			try
 			{
 
-				FileInputStream fstream = new FileInputStream("graphics/Instructions.txt");
+				FileInputStream fstream = new FileInputStream(this.getClass().getResource("/resources/docs/Instructions.txt").getPath());
 
 				DataInputStream in = new DataInputStream(fstream);
 				BufferedReader br = new BufferedReader(new InputStreamReader(in));
@@ -165,6 +166,7 @@ public class MainFrame extends JFrame implements ActionListener
 				}
 			}
 			PeerFrame pf = new PeerFrame(this, connection);
+			pf.setVisible(true);
 		}
 	}
 	
@@ -178,9 +180,14 @@ public class MainFrame extends JFrame implements ActionListener
 		String name = "";
 		while (!ok)
 		{
+			
 			name = (String) JOptionPane.showInputDialog(this, "Your name:",
 					"Checkers - Player name", JOptionPane.INFORMATION_MESSAGE);
-			if (!Connection.isValid(name))
+			if (name == null)
+			{
+				System.exit(0);
+			}
+			else if(!Connection.isValid(name))
 			{
 				JOptionPane.showMessageDialog(this,
 						"Name is empty or contains illegal characters.", "Error",

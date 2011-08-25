@@ -280,7 +280,7 @@ public class Groups implements DiscoveryListener, ActionListener
 		{
 			ModuleImplAdvertisement implAdv = defaultPeerGroup
 					.getAllPurposePeerGroupImplAdvertisement();
-			newGroup = defaultPeerGroup.newGroup(groupID, implAdv, name, description);
+			newGroup = defaultPeerGroup.newGroup(groupID, implAdv, name, description);//, false);
 			PeerGroupAdvertisement groupAdv = newGroup.getPeerGroupAdvertisement();
 
 			discovery.publish(groupAdv);

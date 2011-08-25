@@ -1,36 +1,34 @@
 package checkers.gui;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.Point;
-
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
-
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
-
-
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import checkers.ai.Computer;
 import checkers.core.GameRepresentation;
-import checkers.core.SinglePlayer;
 import checkers.core.Multiplayer;
+import checkers.core.SinglePlayer;
 
 
 
 
 public class Board extends JPanel implements MouseListener, MouseMotionListener{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -7723758126337159072L;
 	//Labels for holding checkers pieces
 	private JLabel[][] slots;
 	//Image for black
@@ -43,10 +41,9 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener{
 	private ImageIcon kingRed;
 	//Initial slot from where the piece is moved
 	private JLabel initSlot;
-	private int xi,yi;
 	//Slots over which the piece hovers over
 	private JLabel intSlot;
-	private ImageIcon intermediate;
+	//private ImageIcon intermediate;
 	//Final slot where the piece is dropped
 	private JLabel endSlot;
 	private int[] userInput;
@@ -75,10 +72,11 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener{
 			user=u;
 	
 		//load images for pieces
-		black=new ImageIcon("graphics/black.jpg");
-		kingBlack=new ImageIcon("graphics/black_king.jpg");
-		red=new ImageIcon("graphics/red.jpg");
-		kingRed=new ImageIcon("graphics/red_king.jpg");
+		
+		black=new ImageIcon(this.getClass().getResource("/resources/icons/black.jpg"));
+		kingBlack=new ImageIcon(this.getClass().getResource("/resources/icons/black_king.jpg"));
+		red=new ImageIcon(this.getClass().getResource("/resources/icons/red.jpg"));
+		kingRed=new ImageIcon(this.getClass().getResource("/resources/icons/red_king.jpg"));
 		//disable dragging
 		enableDrag=false;
 		int cl=0;//initializes the first color of the row
@@ -171,7 +169,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener{
 	public void mousePressed(MouseEvent e) {
 		//get the initial JLabel
 		initSlot=(JLabel)e.getComponent();
-		intermediate=(ImageIcon)initSlot.getIcon();
+		//intermediate=(ImageIcon)initSlot.getIcon();
 		userInput=new int[4];
 		for(int i=0;i<8;i++)
 			for(int j=0;j<8;j++)

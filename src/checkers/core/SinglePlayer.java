@@ -1,6 +1,5 @@
 package checkers.core;
 
-import checkers.ai.Computer;
 
 public class SinglePlayer {
 	

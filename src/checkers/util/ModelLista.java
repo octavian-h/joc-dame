@@ -12,6 +12,7 @@ import javax.swing.AbstractListModel;
  */
 public class ModelLista extends AbstractListModel<Entry<String, String>>
 {
+	private static final long serialVersionUID = -8241853732875086345L;
 	private ArrayList<Entry<String, String>> date;
 
 	/**
